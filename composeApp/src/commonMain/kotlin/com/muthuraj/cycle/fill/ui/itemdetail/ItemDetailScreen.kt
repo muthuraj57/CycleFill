@@ -171,7 +171,7 @@ private fun CollectionItem(
                 verticalArrangement = Arrangement.Center
             ) {
                 if (collection.daysElapsed != null) {
-                    DaysElapsedChip(collection.daysElapsed, suffix = "ago")
+                    DaysElapsedChip(collection.daysElapsed, suffix = "ago", isForDatePeriod = false)
                 }
                 if (collection.lastRefillDate != null) {
                     IconButton(onClick = onDelete) {

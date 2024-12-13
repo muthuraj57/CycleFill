@@ -10,14 +10,15 @@ sealed interface CollectionDetailScreenState : ViewState {
         val collectionName: String,
         val dates: List<CollectionDetailItem>,
         val showAddDialog: Boolean = false,
-        val deleteConfirmation: Timestamp? = null
+        val deleteConfirmation: Int? = null
     ) : CollectionDetailScreenState
 }
 
 data class CollectionDetailItem(
+    val id: Int,
     val date: String,
     val weekDay: String,
     val daysAgoForLastCycle: Pair<Int, String>?,
-    val timestamp: Timestamp,
+    val timestamp: String,
     val comment: String?
 )

@@ -4,9 +4,11 @@ import androidx.lifecycle.viewModelScope
 import com.muthuraj.cycle.fill.models.ItemCollection
 import com.muthuraj.cycle.fill.navigation.NavigationManager
 import com.muthuraj.cycle.fill.navigation.Screen
+import com.muthuraj.cycle.fill.network.NetworkManager
 import com.muthuraj.cycle.fill.util.BaseViewModel
 import com.muthuraj.cycle.fill.util.getDaysElapsed
 import com.muthuraj.cycle.fill.util.log
+import com.muthuraj.cycle.fill.util.printDebugStackTrace
 import com.muthuraj.cycle.fill.util.toDate
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.firestore.Timestamp
@@ -19,6 +21,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDate
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.MapEntrySerializer
 import kotlinx.serialization.builtins.serializer
@@ -30,12 +33,11 @@ import me.tatarka.inject.annotations.Inject
 @Inject
 class ItemDetailViewModel(
     private val navigationManager: NavigationManager,
+    private val networkManager: NetworkManager,
     @Assisted private val itemDetail: Screen.ItemDetail
 ) : BaseViewModel<ItemDetailScreenEvent, ItemDetailScreenState>() {
 
     override fun setInitialState(): ItemDetailScreenState = ItemDetailScreenState.Loading
-
-    private val documentPath = itemDetail.documentPath
 
     init {
         loadItemDetails()
@@ -43,46 +45,46 @@ class ItemDetailViewModel(
 
     private var job: Job? = null
     private fun loadItemDetails() {
-        val documentRef = Firebase.firestore.document(documentPath)
         job?.cancel()
-        job = documentRef.snapshots
-            .onEach { query ->
-                val collection = query.data<Map<String, List<Timestamp>>> {
-                    serializersModule = SerializersModule {
-                        contextual(
-                            MapEntrySerializer(
-                                String.serializer(),
-                                ListSerializer(Timestamp.serializer())
+        job = viewModelScope.launch {
+            val result = runCatching {
+                networkManager.getCollections(subCategoryId = itemDetail.subCategoryId)
+            }
+            if (result.isSuccess) {
+                val response = result.getOrThrow()
+                if (response.success) {
+                    val collections = response.data!!
+                        .map {
+                            ItemCollection(
+                                id = it.id,
+                                name = it.name,
+                                documentPath = it.id.toString(),
+                                lastRefillDate = it.lastDate?.toDate(),
+                                daysElapsed = it.lastDate?.getDaysElapsed()
                             )
+                        }
+                    setState {
+                        ItemDetailScreenState.Success(
+                            itemName = itemDetail.itemName,
+                            collections = collections
                         )
                     }
+                } else {
+                    log { "Error loading item details: ${response.message}" }
+                    setState {
+                        ItemDetailScreenState.Error(response.message!!)
+                    }
                 }
-                    .filter { it.key != "name" && it.key != "imagePath" && it.key.endsWith("_comments").not() }
-                val collections = collection.map {
-                    val lastTimeStamp = it.value
-                        .maxByOrNull { it.toDuration() }
-                    val lastDate = lastTimeStamp?.toDate()
-                    ItemCollection(
-                        name = it.key,
-                        documentPath = documentPath,
-                        lastRefillDate = lastDate,
-                        daysElapsed = lastTimeStamp?.getDaysElapsed()
-                    )
-                }
-                setState {
-                    ItemDetailScreenState.Success(
-                        itemName = itemDetail.itemName,
-                        collections = collections
-                    )
-                }
-            }.catch { error ->
+            } else {
+                val error = result.exceptionOrNull()!!
+                error.printDebugStackTrace()
                 log { "Error loading item details: $error" }
                 setState {
-                    ItemDetailScreenState.Error("Failed to load item details")
+                    ItemDetailScreenState.Error(error.message ?: "Failed to load item details")
+
                 }
             }
-            .flowOn(Dispatchers.Default)
-            .launchIn(viewModelScope)
+        }
     }
 
     override fun handleEvents(event: ItemDetailScreenEvent) {
@@ -91,7 +93,7 @@ class ItemDetailViewModel(
                 viewModelScope.launch {
                     navigationManager.navigate(
                         Screen.CollectionDetail(
-                            documentPath = documentPath,
+                            collectionId = event.collection.id,
                             collectionName = event.collection.name
                         )
                     )
@@ -108,14 +110,11 @@ class ItemDetailViewModel(
             is ItemDetailScreenEvent.AddCollection -> {
                 viewModelScope.launch {
                     try {
-                        Firebase.firestore
-                            .document(documentPath)
-                            .update(mapOf(event.name to emptyList<String>()))
-
-                        setState {
-                            (this as? ItemDetailScreenState.Success)?.copy(showAddDialog = false)
-                                ?: this
-                        }
+                        networkManager.addCollection(
+                            subCategoryId = itemDetail.subCategoryId,
+                            name = event.name
+                        )
+                        loadItemDetails()
                     } catch (e: Exception) {
                         log { "Error adding collection: $e" }
                         // Optionally show error message to user
@@ -158,9 +157,8 @@ class ItemDetailViewModel(
                 if (collection != null) {
                     viewModelScope.launch {
                         try {
-                            val updates = mapOf(collection.name to listOf<String>())
-                            Firebase.firestore.document(documentPath)
-                                .update(updates)
+                            networkManager.deleteCollection(collectionId = collection.id)
+                            loadItemDetails()
                         } catch (e: Exception) {
                             log { "Error deleting collection: $e" }
                         }
@@ -174,4 +172,4 @@ class ItemDetailViewModel(
             }
         }
     }
-} 
+}

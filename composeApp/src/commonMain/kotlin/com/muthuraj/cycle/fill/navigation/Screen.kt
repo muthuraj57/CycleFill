@@ -9,20 +9,26 @@ import kotlinx.serialization.Serializable
 sealed class Screen {
 
     @Serializable
-    data object Dashboard : Screen()
+    data class Dashboard(val type: Type, val categoryId: Int? = null, val categoryName: String? = null) :
+        Screen() {
+
+        enum class Type {
+            Category, SubCategory
+        }
+    }
 
     @Serializable
     data object Recents : Screen()
 
     @Serializable
     data class ItemDetail(
-        val documentPath: String,
+        val subCategoryId: Int,
         val itemName: String
     ) : Screen()
 
     @Serializable
     data class CollectionDetail(
-        val documentPath: String,
+        val collectionId: Int,
         val collectionName: String
     ) : Screen()
 }

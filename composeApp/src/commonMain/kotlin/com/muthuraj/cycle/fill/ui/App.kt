@@ -23,10 +23,10 @@ import androidx.navigation.toRoute
 import com.muthuraj.cycle.fill.di.AppComponent
 import com.muthuraj.cycle.fill.di.create
 import com.muthuraj.cycle.fill.navigation.Screen
+import com.muthuraj.cycle.fill.ui.collectiondetail.CollectionDetailScreen
 import com.muthuraj.cycle.fill.ui.dashboard.DashboardScreen
 import com.muthuraj.cycle.fill.ui.itemdetail.ItemDetailScreen
 import com.muthuraj.cycle.fill.ui.recents.RecentsScreen
-import com.muthuraj.cycle.fill.ui.collectiondetail.CollectionDetailScreen
 import kotlinx.coroutines.flow.Flow
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -65,11 +65,11 @@ fun App() {
         ) { paddingValues ->
             NavHost(
                 navController = navController,
-                startDestination = Screen.Dashboard,
+                startDestination = Screen.Dashboard(Screen.Dashboard.Type.Category),
                 modifier = Modifier.padding(paddingValues)
             ) {
                 composable<Screen.Dashboard> {
-                    val viewModel = viewModel { appComponent.dashboardScreenViewModelProvider() }
+                    val viewModel = viewModel { appComponent.dashboardScreenViewModelProvider(it.toRoute()) }
                     val screenState by viewModel.viewState.collectAsState()
                     DashboardScreen(screenState = screenState, doAction = viewModel::setEvent)
                 }
@@ -83,9 +83,13 @@ fun App() {
                     ItemDetailScreen(screenState = screenState, doAction = viewModel::setEvent)
                 }
                 composable<Screen.CollectionDetail> {
-                    val viewModel = viewModel { appComponent.collectionDetailViewModelProvider(it.toRoute()) }
+                    val viewModel =
+                        viewModel { appComponent.collectionDetailViewModelProvider(it.toRoute()) }
                     val screenState by viewModel.viewState.collectAsState()
-                    CollectionDetailScreen(screenState = screenState, doAction = viewModel::setEvent)
+                    CollectionDetailScreen(
+                        screenState = screenState,
+                        doAction = viewModel::setEvent
+                    )
                 }
             }
         }
@@ -103,7 +107,25 @@ private suspend fun observeNavigation(
                     navController.navigate(it)
                 }
 
-                Screen.Dashboard, Screen.Recents -> {
+                is Screen.Dashboard -> {
+                    when (it.type) {
+                        Screen.Dashboard.Type.Category -> {
+                            navController.navigate(it) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+
+                        Screen.Dashboard.Type.SubCategory -> {
+                            navController.navigate(it)
+                        }
+                    }
+                }
+
+                Screen.Recents -> {
                     navController.navigate(it) {
                         popUpTo(navController.graph.findStartDestination().id) {
                             saveState = true

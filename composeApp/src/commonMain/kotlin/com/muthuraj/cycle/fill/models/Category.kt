@@ -6,4 +6,4 @@ import kotlinx.serialization.Serializable
 /**
  * Created by Muthuraj on 08/12/24.
  */
-data class Category(val name: String, val imageUrl: String, val documentPath: String)
+data class Category(val name: String, val imageUrl: String, val id: Int)

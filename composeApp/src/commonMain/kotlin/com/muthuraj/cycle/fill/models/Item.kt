@@ -7,6 +7,7 @@ data class Item(
 )
 
 data class ItemCollection(
+    val id: Int,
     val name: String,
     val documentPath: String,
     val lastRefillDate: String?,

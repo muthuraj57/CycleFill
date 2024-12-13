@@ -23,6 +23,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.muthuraj.cycle.fill.models.Category
@@ -32,11 +33,12 @@ fun DashboardScreen(screenState: DashboardScreenState, doAction: (DashboardScree
     when (screenState) {
         is DashboardScreenState.Error -> {
             Box(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = screenState.message)
+                    Text(text = screenState.message, textAlign = TextAlign.Center)
+                    Spacer(modifier = Modifier.size(24.dp))
                     Button(onClick = { doAction(DashboardScreenEvent.Retry) }) {
                         Text(text = "Retry")
                     }
@@ -56,20 +58,28 @@ fun DashboardScreen(screenState: DashboardScreenState, doAction: (DashboardScree
         }
 
         is DashboardScreenState.Success -> {
-            CategoriesList(categories = screenState.categories, doAction = doAction)
+            CategoriesList(
+                screenName = screenState.screenName,
+                categories = screenState.categories,
+                doAction = doAction
+            )
         }
     }
 }
 
 @Composable
-private fun CategoriesList(categories: List<Category>, doAction: (DashboardScreenEvent) -> Unit) {
+private fun CategoriesList(
+    screenName: String,
+    categories: List<Category>,
+    doAction: (DashboardScreenEvent) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
         Text(
-            text = "Categories",
+            text = screenName,
             style = MaterialTheme.typography.h6,
             modifier = Modifier.padding(bottom = 16.dp)
         )

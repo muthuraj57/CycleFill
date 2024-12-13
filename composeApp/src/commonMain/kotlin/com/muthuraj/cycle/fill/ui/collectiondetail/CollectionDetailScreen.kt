@@ -48,9 +48,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.muthuraj.cycle.fill.util.compose.DaysElapsedChip
-import dev.gitlive.firebase.firestore.Timestamp
 import kotlinx.datetime.Instant
-import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
@@ -129,18 +127,16 @@ fun CollectionDetailScreen(
                                 DateItem(
                                     item = item,
                                     index = screenState.dates.size - screenState.dates.indexOf(item),
-                                    onDelete = { timestamp ->
+                                    onDelete = { id ->
                                         doAction(
-                                            CollectionDetailScreenEvent.ShowDeleteConfirmation(
-                                                timestamp
-                                            )
+                                            CollectionDetailScreenEvent.ShowDeleteConfirmation(id)
                                         )
                                     },
-                                    onEdit = { timestamp, comment ->
+                                    onEdit = { id, comment ->
                                         doAction(
                                             CollectionDetailScreenEvent.AddComment(
-                                                timestamp,
-                                                comment
+                                                itemId = id,
+                                                comment = comment
                                             )
                                         )
                                     }
@@ -162,8 +158,8 @@ fun CollectionDetailScreen(
 private fun DateItem(
     item: CollectionDetailItem,
     index: Int,
-    onDelete: (Timestamp) -> Unit,
-    onEdit: (Timestamp, String) -> Unit
+    onDelete: (Int) -> Unit,
+    onEdit: (Int, String) -> Unit
 ) {
     var showEditDialog by remember { mutableStateOf(false) }
 
@@ -173,7 +169,7 @@ private fun DateItem(
             date = item.date,
             onDismiss = { showEditDialog = false },
             onConfirm = { comment ->
-                onEdit(item.timestamp, comment)
+                onEdit(item.id, comment)
                 showEditDialog = false
             }
         )
@@ -240,7 +236,7 @@ private fun DateItem(
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 item.daysAgoForLastCycle?.let { days ->
-                    DaysElapsedChip(daysElapsed = days, suffix = "cycle")
+                    DaysElapsedChip(daysElapsed = days, suffix = "cycle", isForDatePeriod = true)
                 }
                 Row(
                     horizontalArrangement = Arrangement.End
@@ -256,7 +252,7 @@ private fun DateItem(
                     }
 
                     IconButton(
-                        onClick = { onDelete(item.timestamp) }
+                        onClick = { onDelete(item.id) }
                     ) {
                         Icon(
                             imageVector = Icons.Default.Delete,
@@ -314,7 +310,7 @@ fun EditCommentDialog(
 @Composable
 private fun AddDateDialog(
     onDismiss: () -> Unit,
-    onConfirm: (LocalDateTime) -> Unit
+    onConfirm: (String) -> Unit
 ) {
     val datePickerState = rememberDatePickerState()
     DatePickerDialog(
@@ -325,6 +321,8 @@ private fun AddDateDialog(
                     val date =
                         Instant.fromEpochMilliseconds(datePickerState.selectedDateMillis!!)
                             .toLocalDateTime(TimeZone.currentSystemDefault())
+                            .date
+                            .toString()
                     onConfirm(date)
                 }
             ) {

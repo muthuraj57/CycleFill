@@ -21,7 +21,7 @@ abstract class AppComponent(
 ) {
     abstract val navigationManager: NavigationManager
 
-    abstract val dashboardScreenViewModelProvider: () -> DashboardScreenViewModel
+    abstract val dashboardScreenViewModelProvider: (Screen.Dashboard) -> DashboardScreenViewModel
 
     abstract val appViewModelProvider: () -> AppViewModel
 

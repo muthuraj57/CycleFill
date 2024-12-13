@@ -30,7 +30,7 @@ class AppViewModel(private val navigationManager: NavigationManager) :
                     when (event.bottomNavItem) {
                         BottomNavItem.Dashboard -> {
                             setState { copy(currentBottomNavItem = event.bottomNavItem) }
-                            navigationManager.navigate(Screen.Dashboard)
+                            navigationManager.navigate(Screen.Dashboard(Screen.Dashboard.Type.Category))
                         }
 
                         BottomNavItem.Recents -> {

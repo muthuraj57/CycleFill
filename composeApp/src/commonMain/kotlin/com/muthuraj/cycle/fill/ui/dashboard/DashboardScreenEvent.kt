@@ -2,6 +2,7 @@
 package com.muthuraj.cycle.fill.ui.dashboard
 
 import com.muthuraj.cycle.fill.models.Category
+import com.muthuraj.cycle.fill.network.CategoryResponse
 import com.muthuraj.cycle.fill.util.ViewEvent
 
 /**
