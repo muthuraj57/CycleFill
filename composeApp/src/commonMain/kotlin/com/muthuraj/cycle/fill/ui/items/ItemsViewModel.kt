@@ -1,4 +1,4 @@
-package com.muthuraj.cycle.fill.ui.collectiondetail
+package com.muthuraj.cycle.fill.ui.items
 
 import androidx.lifecycle.viewModelScope
 import com.muthuraj.cycle.fill.navigation.Screen
@@ -15,15 +15,15 @@ import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 
 @Inject
-class CollectionDetailViewModel(
+class ItemsViewModel(
     private val networkManager: NetworkManager,
-    @Assisted private val collectionDetail: Screen.CollectionDetail
-) : BaseViewModel<CollectionDetailScreenEvent, CollectionDetailScreenState>() {
+    @Assisted private val items: Screen.Items
+) : BaseViewModel<ItemsScreenEvent, ItemsScreenState>() {
 
-    override fun setInitialState(): CollectionDetailScreenState =
-        CollectionDetailScreenState.Loading
+    override fun setInitialState(): ItemsScreenState =
+        ItemsScreenState.Loading
 
-    private val collectionName = collectionDetail.collectionName
+    private val collectionName = items.collectionName
 
     init {
         loadDates()
@@ -34,7 +34,7 @@ class CollectionDetailViewModel(
         job?.cancel()
         job = viewModelScope.launch(Dispatchers.Default) {
             val result = runCatching {
-                networkManager.getItems(collectionId = collectionDetail.collectionId)
+                networkManager.getItems(collectionId = items.collectionId)
             }
             if (result.isSuccess) {
                 val response = result.getOrThrow()
@@ -44,7 +44,7 @@ class CollectionDetailViewModel(
                         val previousTimeStamp = response.data.getOrNull(index + 1)
                         val daysAgoForLastCycle =
                             previousTimeStamp?.date?.getDaysElapsedUntil(item.date)
-                        CollectionDetailItem(
+                        Item(
                             id = item.id,
                             date = date,
                             daysAgoForLastCycle = daysAgoForLastCycle,
@@ -54,7 +54,7 @@ class CollectionDetailViewModel(
                         )
                     }
                     setState {
-                        CollectionDetailScreenState.Success(
+                        ItemsScreenState.Success(
                             collectionName = collectionName,
                             dates = dates
                         )
@@ -62,7 +62,7 @@ class CollectionDetailViewModel(
                 } else {
                     log { "Error loading collection items: ${response.message}" }
                     setState {
-                        CollectionDetailScreenState.Error(response.message!!)
+                        ItemsScreenState.Error(response.message!!)
                     }
                 }
             } else {
@@ -70,7 +70,7 @@ class CollectionDetailViewModel(
                 error.printDebugStackTrace()
                 log { "Error loading collection items: $error" }
                 setState {
-                    CollectionDetailScreenState.Error(
+                    ItemsScreenState.Error(
                         error.message ?: "Failed to load collection items"
                     )
 
@@ -79,21 +79,21 @@ class CollectionDetailViewModel(
         }
     }
 
-    override fun handleEvents(event: CollectionDetailScreenEvent) {
+    override fun handleEvents(event: ItemsScreenEvent) {
         when (event) {
-            CollectionDetailScreenEvent.AddDateClicked -> {
+            ItemsScreenEvent.AddDateClicked -> {
                 setState {
-                    (this as? CollectionDetailScreenState.Success)?.copy(showAddDialog = true)
+                    (this as? ItemsScreenState.Success)?.copy(showAddDialog = true)
                         ?: this
                 }
             }
 
-            is CollectionDetailScreenEvent.AddDate -> {
+            is ItemsScreenEvent.AddDate -> {
                 viewModelScope.launch {
                     try {
                         networkManager.addItem(
                             date = event.date,
-                            collectionId = collectionDetail.collectionId,
+                            collectionId = items.collectionId,
                             description = ""
                         )
                         loadDates()
@@ -104,38 +104,38 @@ class CollectionDetailViewModel(
                 }
             }
 
-            CollectionDetailScreenEvent.DismissDialog -> {
+            ItemsScreenEvent.DismissDialog -> {
                 setState {
-                    (this as? CollectionDetailScreenState.Success)?.copy(showAddDialog = false)
+                    (this as? ItemsScreenState.Success)?.copy(showAddDialog = false)
                         ?: this
                 }
             }
 
-            CollectionDetailScreenEvent.Retry -> {
-                setState { CollectionDetailScreenState.Loading }
+            ItemsScreenEvent.Retry -> {
+                setState { ItemsScreenState.Loading }
                 loadDates()
             }
 
-            is CollectionDetailScreenEvent.ShowDeleteConfirmation -> {
+            is ItemsScreenEvent.ShowDeleteConfirmation -> {
                 setState {
-                    (this as? CollectionDetailScreenState.Success)?.copy(
+                    (this as? ItemsScreenState.Success)?.copy(
                         deleteConfirmation = event.itemId
                     ) ?: this
                 }
             }
 
-            CollectionDetailScreenEvent.DismissDeleteConfirmation -> {
+            ItemsScreenEvent.DismissDeleteConfirmation -> {
                 setState {
-                    (this as? CollectionDetailScreenState.Success)?.copy(
+                    (this as? ItemsScreenState.Success)?.copy(
                         deleteConfirmation = null
                     ) ?: this
                 }
             }
 
-            CollectionDetailScreenEvent.ConfirmDelete -> {
+            ItemsScreenEvent.ConfirmDelete -> {
                 val currentState = viewState.value
                 val id =
-                    (currentState as? CollectionDetailScreenState.Success)?.deleteConfirmation
+                    (currentState as? ItemsScreenState.Success)?.deleteConfirmation
                 if (id != null) {
                     viewModelScope.launch {
                         try {
@@ -148,13 +148,13 @@ class CollectionDetailViewModel(
                     }
                 }
                 setState {
-                    (this as? CollectionDetailScreenState.Success)?.copy(
+                    (this as? ItemsScreenState.Success)?.copy(
                         deleteConfirmation = null
                     ) ?: this
                 }
             }
 
-            is CollectionDetailScreenEvent.AddComment -> {
+            is ItemsScreenEvent.AddComment -> {
                 viewModelScope.launch {
                     try {
                         networkManager.updateItemDescription(

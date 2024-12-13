@@ -21,13 +21,13 @@ sealed class Screen {
     data object Recents : Screen()
 
     @Serializable
-    data class ItemDetail(
+    data class Collections(
         val subCategoryId: Int,
         val itemName: String
     ) : Screen()
 
     @Serializable
-    data class CollectionDetail(
+    data class Items(
         val collectionId: Int,
         val collectionName: String
     ) : Screen()

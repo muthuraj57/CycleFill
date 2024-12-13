@@ -126,7 +126,7 @@ class DashboardScreenViewModel(
                         }
 
                         Screen.Dashboard.Type.SubCategory -> {
-                            Screen.ItemDetail(
+                            Screen.Collections(
                                 subCategoryId = event.category.id,
                                 itemName = event.category.name
                             )

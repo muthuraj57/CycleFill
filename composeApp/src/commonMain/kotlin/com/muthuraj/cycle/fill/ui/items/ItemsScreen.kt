@@ -1,4 +1,4 @@
-package com.muthuraj.cycle.fill.ui.collectiondetail
+package com.muthuraj.cycle.fill.ui.items
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -53,12 +53,12 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
 @Composable
-fun CollectionDetailScreen(
-    screenState: CollectionDetailScreenState,
-    doAction: (CollectionDetailScreenEvent) -> Unit
+fun ItemsScreen(
+    screenState: ItemsScreenState,
+    doAction: (ItemsScreenEvent) -> Unit
 ) {
     when (screenState) {
-        is CollectionDetailScreenState.Error -> {
+        is ItemsScreenState.Error -> {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -67,7 +67,7 @@ fun CollectionDetailScreen(
             }
         }
 
-        CollectionDetailScreenState.Loading -> {
+        ItemsScreenState.Loading -> {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -76,31 +76,31 @@ fun CollectionDetailScreen(
             }
         }
 
-        is CollectionDetailScreenState.Success -> {
+        is ItemsScreenState.Success -> {
             if (screenState.showAddDialog) {
                 AddDateDialog(
-                    onDismiss = { doAction(CollectionDetailScreenEvent.DismissDialog) },
-                    onConfirm = { dateTime -> doAction(CollectionDetailScreenEvent.AddDate(dateTime)) }
+                    onDismiss = { doAction(ItemsScreenEvent.DismissDialog) },
+                    onConfirm = { dateTime -> doAction(ItemsScreenEvent.AddDate(dateTime)) }
                 )
             }
 
             screenState.deleteConfirmation?.let {
                 DeleteConfirmationDialog(
-                    onDismiss = { doAction(CollectionDetailScreenEvent.DismissDeleteConfirmation) },
-                    onConfirm = { doAction(CollectionDetailScreenEvent.ConfirmDelete) }
+                    onDismiss = { doAction(ItemsScreenEvent.DismissDeleteConfirmation) },
+                    onConfirm = { doAction(ItemsScreenEvent.ConfirmDelete) }
                 )
             }
 
             if (screenState.dates.isEmpty()) {
                 EmptyState(
                     collectionName = screenState.collectionName,
-                    onAddClick = { doAction(CollectionDetailScreenEvent.AddDateClicked) }
+                    onAddClick = { doAction(ItemsScreenEvent.AddDateClicked) }
                 )
             } else {
                 Scaffold(
                     floatingActionButton = {
                         FloatingActionButton(
-                            onClick = { doAction(CollectionDetailScreenEvent.AddDateClicked) }
+                            onClick = { doAction(ItemsScreenEvent.AddDateClicked) }
                         ) {
                             Icon(Icons.Default.Add, "Add Date")
                         }
@@ -129,12 +129,12 @@ fun CollectionDetailScreen(
                                     index = screenState.dates.size - screenState.dates.indexOf(item),
                                     onDelete = { id ->
                                         doAction(
-                                            CollectionDetailScreenEvent.ShowDeleteConfirmation(id)
+                                            ItemsScreenEvent.ShowDeleteConfirmation(id)
                                         )
                                     },
                                     onEdit = { id, comment ->
                                         doAction(
-                                            CollectionDetailScreenEvent.AddComment(
+                                            ItemsScreenEvent.AddComment(
                                                 itemId = id,
                                                 comment = comment
                                             )
@@ -156,7 +156,7 @@ fun CollectionDetailScreen(
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun DateItem(
-    item: CollectionDetailItem,
+    item: Item,
     index: Int,
     onDelete: (Int) -> Unit,
     onEdit: (Int, String) -> Unit

@@ -1,4 +1,4 @@
-package com.muthuraj.cycle.fill.ui.itemdetail
+package com.muthuraj.cycle.fill.ui.collections
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -16,18 +16,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.muthuraj.cycle.fill.models.ItemCollection
+import com.muthuraj.cycle.fill.models.Collection
 import com.muthuraj.cycle.fill.util.compose.DaysElapsedChip
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 @Composable
-fun ItemDetailScreen(
-    screenState: ItemDetailScreenState,
-    doAction: (ItemDetailScreenEvent) -> Unit
+fun CollectionsScreen(
+    screenState: CollectionsScreenState,
+    doAction: (CollectionsScreenEvent) -> Unit
 ) {
     when (screenState) {
-        is ItemDetailScreenState.Error -> {
+        is CollectionsScreenState.Error -> {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -36,7 +34,7 @@ fun ItemDetailScreen(
             }
         }
 
-        ItemDetailScreenState.Loading -> {
+        CollectionsScreenState.Loading -> {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -45,31 +43,31 @@ fun ItemDetailScreen(
             }
         }
 
-        is ItemDetailScreenState.Success -> {
+        is CollectionsScreenState.Success -> {
             if (screenState.showAddDialog) {
                 AddCollectionDialog(
-                    onDismiss = { doAction(ItemDetailScreenEvent.DismissDialog) },
-                    onConfirm = { name -> doAction(ItemDetailScreenEvent.AddCollection(name)) }
+                    onDismiss = { doAction(CollectionsScreenEvent.DismissDialog) },
+                    onConfirm = { name -> doAction(CollectionsScreenEvent.AddCollection(name)) }
                 )
             }
 
             screenState.deleteConfirmation?.let {
                 DeleteConfirmationDialog(
-                    onDismiss = { doAction(ItemDetailScreenEvent.DismissDeleteConfirmation) },
-                    onConfirm = { doAction(ItemDetailScreenEvent.ConfirmDelete) }
+                    onDismiss = { doAction(CollectionsScreenEvent.DismissDeleteConfirmation) },
+                    onConfirm = { doAction(CollectionsScreenEvent.ConfirmDelete) }
                 )
             }
 
             if (screenState.collections.isEmpty()) {
                 EmptyState(
                     itemName = screenState.itemName,
-                    onAddClick = { doAction(ItemDetailScreenEvent.AddCollectionClicked) }
+                    onAddClick = { doAction(CollectionsScreenEvent.AddCollectionClicked) }
                 )
             } else {
                 Scaffold(
                     floatingActionButton = {
                         FloatingActionButton(
-                            onClick = { doAction(ItemDetailScreenEvent.AddCollectionClicked) }
+                            onClick = { doAction(CollectionsScreenEvent.AddCollectionClicked) }
                         ) {
                             Icon(Icons.Default.Add, "Add Tracking")
                         }
@@ -103,14 +101,14 @@ fun ItemDetailScreen(
                                     collection = collection,
                                     onClick = {
                                         doAction(
-                                            ItemDetailScreenEvent.CollectionClicked(
+                                            CollectionsScreenEvent.CollectionClicked(
                                                 collection
                                             )
                                         )
                                     },
                                     onDelete = {
                                         doAction(
-                                            ItemDetailScreenEvent.ShowDeleteConfirmation(
+                                            CollectionsScreenEvent.ShowDeleteConfirmation(
                                                 collection
                                             )
                                         )
@@ -131,7 +129,7 @@ fun ItemDetailScreen(
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun CollectionItem(
-    collection: ItemCollection,
+    collection: Collection,
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {

@@ -18,6 +18,8 @@ captures
 **/xcshareddata/WorkspaceSettings.xcsettings
 .vscode
 composeApp/google-services.json
-iosApp/GoogleService-Info.plist
+iosApp/iosApp/GoogleService-Info.plist
 CycleFill.keystore
 keystore_password.txt
+composeApp/release/
+.fleet

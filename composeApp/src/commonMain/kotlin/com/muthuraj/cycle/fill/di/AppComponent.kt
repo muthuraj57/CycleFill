@@ -5,9 +5,9 @@ import androidx.navigation.NavController
 import com.muthuraj.cycle.fill.navigation.NavigationManager
 import com.muthuraj.cycle.fill.navigation.Screen
 import com.muthuraj.cycle.fill.ui.AppViewModel
-import com.muthuraj.cycle.fill.ui.collectiondetail.CollectionDetailViewModel
+import com.muthuraj.cycle.fill.ui.items.ItemsViewModel
 import com.muthuraj.cycle.fill.ui.dashboard.DashboardScreenViewModel
-import com.muthuraj.cycle.fill.ui.itemdetail.ItemDetailViewModel
+import com.muthuraj.cycle.fill.ui.collections.CollectionsViewModel
 import me.tatarka.inject.annotations.Component
 import me.tatarka.inject.annotations.Provides
 
@@ -25,7 +25,7 @@ abstract class AppComponent(
 
     abstract val appViewModelProvider: () -> AppViewModel
 
-    abstract val itemDetailViewModelProvider: (Screen.ItemDetail) -> ItemDetailViewModel
+    abstract val collectionsViewModelProvider: (Screen.Collections) -> CollectionsViewModel
 
-    abstract val collectionDetailViewModelProvider: (Screen.CollectionDetail) -> CollectionDetailViewModel
+    abstract val itemsViewModelProvider: (Screen.Items) -> ItemsViewModel
 }
