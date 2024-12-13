@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.sp
  * Created by Muthuraj on 10/12/24.
  */
 @Composable
-fun DaysElapsedChip(daysElapsed: Pair<Int, String>, suffix: String, isForDatePeriod: Boolean) {
+fun DaysElapsedChip(daysElapsed: Pair<Int, String>, text: String) {
     val bgColor = when {
         daysElapsed.first > 90 -> MaterialTheme.colors.error.copy(alpha = 0.1f)
         daysElapsed.first > 60 -> MaterialTheme.colors.secondary.copy(
@@ -23,23 +23,6 @@ fun DaysElapsedChip(daysElapsed: Pair<Int, String>, suffix: String, isForDatePer
         )
 
         else -> MaterialTheme.colors.primary.copy(alpha = 0.1f)
-    }
-    val text = if (isForDatePeriod) {
-        "${daysElapsed.second} $suffix"
-    } else {
-        when (daysElapsed.first) {
-            1 -> {
-                "Yesterday"
-            }
-
-            0 -> {
-                "Today"
-            }
-
-            else -> {
-                "${daysElapsed.second} $suffix"
-            }
-        }
     }
     Text(
         modifier = Modifier.border(width = 1.dp, shape = RoundedCornerShape(16.dp), color = bgColor)

@@ -2,7 +2,6 @@ package com.muthuraj.cycle.fill.ui.recents
 
 import androidx.lifecycle.viewModelScope
 import com.muthuraj.cycle.fill.network.NetworkManager
-import com.muthuraj.cycle.fill.ui.items.Item
 import com.muthuraj.cycle.fill.util.BaseViewModel
 import com.muthuraj.cycle.fill.util.getDaysElapsedUntil
 import com.muthuraj.cycle.fill.util.log
@@ -36,13 +35,24 @@ class RecentsViewModel(
                         val previousTimeStamp = response.data.getOrNull(index + 1)
                         val daysAgoForLastCycle =
                             previousTimeStamp?.date?.getDaysElapsedUntil(item.date)
-                        Item(
+                        
+                        // Get previous item to compare headers
+                        val previousItem = if (index > 0) response.data[index - 1] else null
+                        
+                        ItemDetailed(
                             id = item.id,
                             date = date,
                             daysAgoForLastCycle = daysAgoForLastCycle,
                             weekDay = weekDay,
                             timestamp = item.date,
-                            comment = item.description
+                            comment = item.description,
+                            categoryName = item.category_name,
+                            subCategoryName = item.subcategory_name,
+                            collectionName = item.collection_name,
+                            // Only show headers if they're different from previous item
+                            showCategoryName = previousItem?.category_name != item.category_name,
+                            showSubCategoryName = previousItem?.subcategory_name != item.subcategory_name,
+                            showCollectionName = previousItem?.collection_name != item.collection_name
                         )
                     }
                     setState {

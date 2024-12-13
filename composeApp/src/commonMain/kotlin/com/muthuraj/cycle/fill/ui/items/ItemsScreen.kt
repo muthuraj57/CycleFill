@@ -236,7 +236,10 @@ private fun DateItem(
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 item.daysAgoForLastCycle?.let { days ->
-                    DaysElapsedChip(daysElapsed = days, suffix = "cycle", isForDatePeriod = true)
+                    DaysElapsedChip(
+                        daysElapsed = days,
+                        text = "${item.daysAgoForLastCycle.second} cycle"
+                    )
                 }
                 Row(
                     horizontalArrangement = Arrangement.End
