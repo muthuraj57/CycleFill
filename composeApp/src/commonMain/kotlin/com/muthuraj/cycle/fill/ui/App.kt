@@ -74,7 +74,9 @@ fun App() {
                     DashboardScreen(screenState = screenState, doAction = viewModel::setEvent)
                 }
                 composable<Screen.Recents> {
-                    RecentsScreen()
+                    val viewModel = viewModel { appComponent.recentsViewModelProvider() }
+                    val screenState by viewModel.viewState.collectAsState()
+                    RecentsScreen(screenState = screenState, doAction = viewModel::setEvent)
                 }
                 composable<Screen.Collections> {
                     val viewModel =

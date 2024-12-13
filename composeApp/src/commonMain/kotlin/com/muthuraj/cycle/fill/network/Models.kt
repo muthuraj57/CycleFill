@@ -32,4 +32,15 @@ data class ItemResponse(
 )
 
 @Serializable
+data class ItemDetailedResponse(
+    val id: Int,
+    val date: String,
+    val description: String,
+    val collectionId: Int,
+    val collection_name: String,
+    val subcategory_name: String,
+    val category_name: String
+)
+
+@Serializable
 data class PostResponse(val id: Int?, val success: Boolean, val message: String)

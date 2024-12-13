@@ -14,7 +14,6 @@ import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
-import io.ktor.client.utils.EmptyContent.contentType
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
@@ -86,6 +85,12 @@ class NetworkManager {
         return httpClient.get(BASE_URL) {
             parameter("endpoint", "items")
             parameter("collectionId", collectionId)
+        }.body()
+    }
+
+    suspend fun getAllItems(): Response<ItemDetailedResponse> {
+        return httpClient.get(BASE_URL) {
+            parameter("endpoint", "items-detailed")
         }.body()
     }
 
