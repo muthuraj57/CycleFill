@@ -47,6 +47,8 @@ kotlin {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.ktor.android)
+            implementation(libs.ktor.okhttp)
+            implementation(libs.coil.ktorOkhttp)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -71,6 +73,8 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
             implementation(libs.ktor.java)
+            implementation(libs.ktor.okhttp)
+            implementation(libs.coil.ktorOkhttp)
         }
         appleMain.dependencies {
             implementation(libs.ktor.darwin)
