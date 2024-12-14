@@ -10,7 +10,6 @@ import com.muthuraj.cycle.fill.util.ViewState
 sealed interface DashboardScreenState : ViewState {
     data object Loading : DashboardScreenState
     data class Error(val message: String) : DashboardScreenState
-    data class Success(val screenName: String, val categories: List<Category>) :
+    data class Success(val categories: List<Category>) :
         DashboardScreenState
 }
-

@@ -7,6 +7,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
+import androidx.compose.material.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -14,6 +15,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -61,6 +64,37 @@ fun App() {
                         )
                     }
                 }
+            },
+            topBar = {
+                val currentBackStack by navController.currentBackStackEntryFlow.collectAsState(
+                    initial = null
+                )
+                if (currentBackStack != null) {
+                    val destination = currentBackStack?.destination ?: return@Scaffold
+                    val title = when {
+                        destination.hasRoute<Screen.Dashboard>() -> {
+                            currentBackStack!!.toRoute<Screen.Dashboard>().categoryName
+                                ?: "Categories"
+                        }
+
+                        destination.hasRoute<Screen.Recents>() -> {
+                            "Recent Entries"
+                        }
+
+                        destination.hasRoute<Screen.Collections>() -> {
+                            currentBackStack!!.toRoute<Screen.Collections>().itemName
+                        }
+
+                        destination.hasRoute<Screen.Items>() -> {
+                            currentBackStack!!.toRoute<Screen.Items>().collectionName
+                        }
+
+                        else -> {
+                            return@Scaffold
+                        }
+                    }
+                    TopAppBar(title = { Text(title) })
+                }
             }
         ) { paddingValues ->
             NavHost(
@@ -69,7 +103,8 @@ fun App() {
                 modifier = Modifier.padding(paddingValues)
             ) {
                 composable<Screen.Dashboard> {
-                    val viewModel = viewModel { appComponent.dashboardScreenViewModelProvider(it.toRoute()) }
+                    val viewModel =
+                        viewModel { appComponent.dashboardScreenViewModelProvider(it.toRoute()) }
                     val screenState by viewModel.viewState.collectAsState()
                     DashboardScreen(screenState = screenState, doAction = viewModel::setEvent)
                 }

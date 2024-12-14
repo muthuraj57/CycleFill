@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 /**
  * Created by Muthuraj on 07/12/24.
  */
+@Serializable
 sealed class Screen {
 
     @Serializable

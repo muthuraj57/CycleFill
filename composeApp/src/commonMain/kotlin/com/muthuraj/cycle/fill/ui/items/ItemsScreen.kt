@@ -22,7 +22,6 @@ import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
 import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -106,45 +105,37 @@ fun ItemsScreen(
                         }
                     }
                 ) { paddingValues ->
-                    Column(
+                    LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(paddingValues)
-                            .padding(16.dp)
+                            .padding(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text(
-                            text = screenState.collectionName,
-                            style = MaterialTheme.typography.h6,
-                        )
-
-                        LazyColumn(
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            item {
-                                Spacer(Modifier.padding(6.dp))
-                            }
-                            items(screenState.dates) { item ->
-                                DateItem(
-                                    item = item,
-                                    index = screenState.dates.size - screenState.dates.indexOf(item),
-                                    onDelete = { id ->
-                                        doAction(
-                                            ItemsScreenEvent.ShowDeleteConfirmation(id)
+                        item {
+                            Spacer(Modifier.padding(8.dp))
+                        }
+                        items(screenState.dates) { item ->
+                            DateItem(
+                                item = item,
+                                index = screenState.dates.size - screenState.dates.indexOf(item),
+                                onDelete = { id ->
+                                    doAction(
+                                        ItemsScreenEvent.ShowDeleteConfirmation(id)
+                                    )
+                                },
+                                onEdit = { id, comment ->
+                                    doAction(
+                                        ItemsScreenEvent.AddComment(
+                                            itemId = id,
+                                            comment = comment
                                         )
-                                    },
-                                    onEdit = { id, comment ->
-                                        doAction(
-                                            ItemsScreenEvent.AddComment(
-                                                itemId = id,
-                                                comment = comment
-                                            )
-                                        )
-                                    }
-                                )
-                            }
-                            item {
-                                Spacer(Modifier.padding(6.dp))
-                            }
+                                    )
+                                }
+                            )
+                        }
+                        item {
+                            Spacer(Modifier.padding(6.dp))
                         }
                     }
                 }
@@ -153,7 +144,6 @@ fun ItemsScreen(
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun DateItem(
     item: Item,

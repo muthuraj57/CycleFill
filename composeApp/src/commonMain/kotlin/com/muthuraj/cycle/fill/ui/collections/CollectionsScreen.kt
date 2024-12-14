@@ -103,11 +103,6 @@ fun CollectionsScreen(
                             .padding(16.dp)
                     ) {
                         Text(
-                            text = screenState.itemName,
-                            style = MaterialTheme.typography.h6,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                        Text(
                             text = "Tracking Items",
                             style = MaterialTheme.typography.subtitle2,
                             color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),

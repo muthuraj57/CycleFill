@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -59,7 +58,6 @@ fun DashboardScreen(screenState: DashboardScreenState, doAction: (DashboardScree
 
         is DashboardScreenState.Success -> {
             CategoriesList(
-                screenName = screenState.screenName,
                 categories = screenState.categories,
                 doAction = doAction
             )
@@ -69,35 +67,25 @@ fun DashboardScreen(screenState: DashboardScreenState, doAction: (DashboardScree
 
 @Composable
 private fun CategoriesList(
-    screenName: String,
     categories: List<Category>,
     doAction: (DashboardScreenEvent) -> Unit
 ) {
-    Column(
+    LazyVerticalGrid(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(top = 8.dp)
+            .padding(horizontal = 16.dp),
+        columns = GridCells.Fixed(2),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(
-            text = screenName,
-            style = MaterialTheme.typography.h6,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-
-        LazyVerticalGrid(
-            modifier = Modifier.weight(1f),
-            columns = GridCells.Fixed(2),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                Spacer(Modifier.padding(top = 16.dp))
-            }
-            items(categories) { category ->
-                CategoryCard(category = category, onClick = {
-                    doAction(DashboardScreenEvent.CategoryClicked(category))
-                })
-            }
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            Spacer(Modifier)
+        }
+        items(categories) { category ->
+            CategoryCard(category = category, onClick = {
+                doAction(DashboardScreenEvent.CategoryClicked(category))
+            })
         }
     }
 }

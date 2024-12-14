@@ -25,11 +25,6 @@ class DashboardScreenViewModel(
 ) :
     BaseViewModel<DashboardScreenEvent, DashboardScreenState>() {
 
-    private val screeName = when (dashboardScreen.type) {
-        Screen.Dashboard.Type.Category -> "Categories"
-        Screen.Dashboard.Type.SubCategory -> dashboardScreen.categoryName!!
-    }
-
     override fun setInitialState(): DashboardScreenState {
         return DashboardScreenState.Loading
     }
@@ -59,7 +54,7 @@ class DashboardScreenViewModel(
                                         id = it.id
                                     )
                                 }
-                            setState { DashboardScreenState.Success(screeName, categories) }
+                            setState { DashboardScreenState.Success(categories) }
                         } else {
                             log { "Error loading item details: ${response.message}" }
                             setState {
@@ -91,7 +86,7 @@ class DashboardScreenViewModel(
                                         id = it.id
                                     )
                                 }
-                            setState { DashboardScreenState.Success(screeName, categories) }
+                            setState { DashboardScreenState.Success(categories) }
                         } else {
                             log { "Error loading item details: ${response.message}" }
                             setState {
