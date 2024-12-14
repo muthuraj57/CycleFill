@@ -5,10 +5,14 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -16,6 +20,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -71,30 +77,9 @@ fun App() {
                     initial = null
                 )
                 if (currentBackStack != null) {
-                    val destination = currentBackStack?.destination ?: return@Scaffold
-                    val title = when {
-                        destination.hasRoute<Screen.Dashboard>() -> {
-                            currentBackStack!!.toRoute<Screen.Dashboard>().categoryName
-                                ?: "Categories"
-                        }
-
-                        destination.hasRoute<Screen.Recents>() -> {
-                            "Recent Entries"
-                        }
-
-                        destination.hasRoute<Screen.Collections>() -> {
-                            currentBackStack!!.toRoute<Screen.Collections>().itemName
-                        }
-
-                        destination.hasRoute<Screen.Items>() -> {
-                            currentBackStack!!.toRoute<Screen.Items>().collectionName
-                        }
-
-                        else -> {
-                            return@Scaffold
-                        }
-                    }
-                    TopAppBar(title = { Text(title) })
+                    TopBar(currentBackStack!!, onBackClick = {
+                        navController.navigateUp()
+                    })
                 }
             }
         ) { paddingValues ->
@@ -130,6 +115,57 @@ fun App() {
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun TopBar(currentBackStack: NavBackStackEntry, onBackClick: () -> Unit) {
+    val screen = currentBackStack.toScreen()
+    val title = when (screen) {
+        is Screen.Dashboard -> screen.categoryName ?: "Categories"
+        is Screen.Collections -> screen.itemName
+        is Screen.Items -> screen.collectionName
+        Screen.Recents -> "Recent Entries"
+    }
+    val showBackArrow = when (screen) {
+        is Screen.Dashboard -> screen.categoryId != null
+        is Screen.Recents -> false
+        else -> true
+    }
+    TopAppBar(
+        title = { Text(title) }, navigationIcon = if (showBackArrow) {
+            {
+                IconButton(onClick = onBackClick) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                    )
+                }
+            }
+        } else null)
+}
+
+private fun NavBackStackEntry.toScreen(): Screen {
+    return when {
+        destination.hasRoute<Screen.Dashboard>() -> {
+            toRoute<Screen.Dashboard>()
+        }
+
+        destination.hasRoute<Screen.Recents>() -> {
+            toRoute<Screen.Recents>()
+        }
+
+        destination.hasRoute<Screen.Collections>() -> {
+            toRoute<Screen.Collections>()
+        }
+
+        destination.hasRoute<Screen.Items>() -> {
+            toRoute<Screen.Items>()
+        }
+
+        else -> {
+            throw IllegalArgumentException("Unknown route: ${destination.route}")
         }
     }
 }
