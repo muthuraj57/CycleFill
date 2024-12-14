@@ -1,13 +1,9 @@
 /* $Id$ */
 package com.muthuraj.cycle.fill.network
 
-import com.muthuraj.cycle.fill.util.log
-import io.ktor.client.HttpClient
+import androidx.compose.runtime.mutableStateOf
+import com.muthuraj.cycle.fill.provideHttpClient
 import io.ktor.client.call.body
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logger
-import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
@@ -16,8 +12,6 @@ import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-import io.ktor.serialization.kotlinx.json.json
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import me.tatarka.inject.annotations.Inject
@@ -28,27 +22,7 @@ import me.tatarka.inject.annotations.Inject
 @Inject
 class NetworkManager {
     private val httpClient by lazy {
-        val json =
-            Json {
-                ignoreUnknownKeys = true
-                isLenient = true
-                explicitNulls = false
-            }
-        HttpClient {
-            install(Logging) {
-                logger =
-                    object : Logger {
-                        override fun log(message: String) {
-                            this@NetworkManager.log { message }
-                        }
-                    }
-                level = LogLevel.ALL
-            }
-            install(ContentNegotiation) {
-                json(json, contentType = ContentType.Any)
-            }
-            expectSuccess = true
-        }
+        provideHttpClient()
     }
 
     suspend fun getCategories(): Response<CategoryResponse> {
@@ -166,9 +140,14 @@ class NetworkManager {
     }
 
     companion object {
-        private const val BASE_SERVER_URL =
+        private const val TAIL_SCALE_URL = ""
+        private const val LOCAL_URL =
             ""
-        private const val BASE_URL =
-            "$BASE_SERVER_URL/index.php"
+        var useTailScaleUrl = false
+
+        private val BASE_SERVER_URL
+            get() = if (useTailScaleUrl) TAIL_SCALE_URL else LOCAL_URL
+        private val BASE_URL
+            get() = "$BASE_SERVER_URL/index.php"
     }
 }

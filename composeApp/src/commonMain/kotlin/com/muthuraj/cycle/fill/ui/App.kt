@@ -1,7 +1,6 @@
 package com.muthuraj.cycle.fill.ui
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Icon
@@ -12,18 +11,17 @@ import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
-import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
-import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -33,11 +31,16 @@ import androidx.navigation.toRoute
 import com.muthuraj.cycle.fill.di.AppComponent
 import com.muthuraj.cycle.fill.di.create
 import com.muthuraj.cycle.fill.navigation.Screen
-import com.muthuraj.cycle.fill.ui.items.ItemsScreen
-import com.muthuraj.cycle.fill.ui.dashboard.DashboardScreen
+import com.muthuraj.cycle.fill.network.NetworkManager
 import com.muthuraj.cycle.fill.ui.collections.CollectionsScreen
+import com.muthuraj.cycle.fill.ui.dashboard.DashboardScreen
+import com.muthuraj.cycle.fill.ui.items.ItemsScreen
 import com.muthuraj.cycle.fill.ui.recents.RecentsScreen
+import cyclefill.composeapp.generated.resources.Res
+import cyclefill.composeapp.generated.resources.local
+import cyclefill.composeapp.generated.resources.tailscale
 import kotlinx.coroutines.flow.Flow
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -133,8 +136,10 @@ private fun TopBar(currentBackStack: NavBackStackEntry, onBackClick: () -> Unit)
         is Screen.Recents -> false
         else -> true
     }
+    var isTailScaleSelected by remember { mutableStateOf(NetworkManager.useTailScaleUrl) }
     TopAppBar(
-        title = { Text(title) }, navigationIcon = if (showBackArrow) {
+        title = { Text(title) },
+        navigationIcon = if (showBackArrow) {
             {
                 IconButton(onClick = onBackClick) {
                     Icon(
@@ -143,7 +148,24 @@ private fun TopBar(currentBackStack: NavBackStackEntry, onBackClick: () -> Unit)
                     )
                 }
             }
-        } else null)
+        } else null,
+        actions = {
+            val icon = if (isTailScaleSelected) {
+                Res.drawable.local
+            } else {
+                Res.drawable.tailscale
+            }
+            IconButton(onClick = {
+                NetworkManager.useTailScaleUrl = !NetworkManager.useTailScaleUrl
+                isTailScaleSelected = !isTailScaleSelected
+            }) {
+                Icon(
+                    painter = painterResource(icon),
+                    contentDescription = "Switch",
+                )
+            }
+        }
+    )
 }
 
 private fun NavBackStackEntry.toScreen(): Screen {
