@@ -15,11 +15,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Card
 import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -53,7 +51,7 @@ fun RecentsScreen(
         }
 
         is RecentsScreenState.Success -> {
-            if (screenState.dates.isEmpty()) {
+            if (screenState.dates.categories.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -65,31 +63,25 @@ fun RecentsScreen(
                     )
                 }
             } else {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp)
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Text(
-                        text = "Recent Entries",
-                        style = MaterialTheme.typography.h6,
-                    )
+                    item {
+                        Text(
+                            text = "Recent Entries",
+                            style = MaterialTheme.typography.h6,
+                        )
+                    }
 
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
+                    screenState.dates.categories.forEach { category ->
                         item {
-                            Spacer(Modifier.padding(6.dp))
+                            CategorySection(category)
                         }
-                        items(screenState.dates) { item ->
-                            DateItem(
-                                item = item,
-                                index = screenState.dates.size - screenState.dates.indexOf(item)
-                            )
-                        }
-                        item {
-                            Spacer(Modifier.padding(6.dp))
-                        }
+                    }
+
+                    item {
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
             }
@@ -98,90 +90,119 @@ fun RecentsScreen(
 }
 
 @Composable
-private fun PathHeader(
-    item: ItemDetailed,
-) {
-    if (item.showCategoryName || item.showSubCategoryName || item.showCollectionName) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp)
+private fun CategorySection(category: RecentCategory) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        // Category Header
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            if (item.showCategoryName) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(6.dp)
-                            .background(
-                                MaterialTheme.colors.primary,
-                                CircleShape
-                            )
+            Box(
+                modifier = Modifier
+                    .size(6.dp)
+                    .background(
+                        MaterialTheme.colors.primary,
+                        CircleShape
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = item.categoryName,
-                        style = MaterialTheme.typography.h6,
-                        color = MaterialTheme.colors.primary
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = category.name,
+                style = MaterialTheme.typography.h6,
+                color = MaterialTheme.colors.primary
+            )
+        }
+
+        // Subcategories
+        category.subCategories.forEach { subcategory ->
+            SubcategorySection(
+                subcategory = subcategory,
+                modifier = Modifier.padding(start = 16.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun SubcategorySection(
+    subcategory: RecentSubCategory,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        // Subcategory Header
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(4.dp)
+                    .background(
+                        MaterialTheme.colors.secondary,
+                        CircleShape
                     )
-                }
-            }
-            
-            if (item.showSubCategoryName) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = if (item.showCategoryName) 24.dp else 0.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(4.dp)
-                            .background(
-                                MaterialTheme.colors.secondary,
-                                CircleShape
-                            )
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = subcategory.name,
+                style = MaterialTheme.typography.subtitle1,
+                color = MaterialTheme.colors.secondary
+            )
+        }
+
+        // Collections
+        subcategory.collections.forEach { collection ->
+            CollectionSection(
+                collection = collection,
+                modifier = Modifier.padding(start = 16.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun CollectionSection(
+    collection: RecentCollection,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        // Collection Header
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(3.dp)
+                    .background(
+                        MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
+                        CircleShape
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = item.subCategoryName,
-                        style = MaterialTheme.typography.subtitle1,
-                        color = MaterialTheme.colors.secondary
-                    )
-                }
-            }
-            
-            if (item.showCollectionName) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(
-                            start = when {
-                                item.showCategoryName && item.showSubCategoryName -> 48.dp
-                                item.showCategoryName || item.showSubCategoryName -> 24.dp
-                                else -> 0.dp
-                            }
-                        )
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(3.dp)
-                            .background(
-                                MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
-                                CircleShape
-                            )
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = item.collectionName,
-                        style = MaterialTheme.typography.subtitle2,
-                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
-                    )
-                }
-            }
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = collection.name,
+                style = MaterialTheme.typography.subtitle2,
+                color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
+            )
+        }
+
+        // Items
+        collection.items.forEach {item ->
+            DateItem(
+                item = item,
+                number = item.number,
+                modifier = Modifier.padding(start = 16.dp)
+            )
         }
     }
 }
@@ -189,75 +210,72 @@ private fun PathHeader(
 @Composable
 private fun DateItem(
     item: ItemDetailed,
-    index: Int
+    number: String,
+    modifier: Modifier = Modifier
 ) {
-    Column {
-        PathHeader(item)
-        
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            elevation = 2.dp
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        elevation = 2.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .height(IntrinsicSize.Min),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .height(IntrinsicSize.Min),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f).fillMaxHeight()
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.weight(1f).fillMaxHeight()
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .background(
+                            color = MaterialTheme.colors.primary.copy(alpha = 0.1f),
+                            shape = CircleShape
+                        ).align(Alignment.Top),
+                    contentAlignment = Alignment.Center,
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(24.dp)
-                            .background(
-                                color = MaterialTheme.colors.primary.copy(alpha = 0.1f),
-                                shape = CircleShape
-                            ).align(Alignment.Top),
-                        contentAlignment = Alignment.Center,
-                    ) {
+                    Text(
+                        text = number,
+                        style = MaterialTheme.typography.caption,
+                        color = MaterialTheme.colors.primary
+                    )
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(
+                    modifier = Modifier.fillMaxHeight(),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = item.date,
+                        style = MaterialTheme.typography.subtitle1
+                    )
+                    if (item.comment.isNullOrBlank().not()) {
                         Text(
-                            text = index.toString(),
-                            style = MaterialTheme.typography.caption,
-                            color = MaterialTheme.colors.primary
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column(
-                        modifier = Modifier.fillMaxHeight(),
-                        verticalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = item.date,
-                            style = MaterialTheme.typography.subtitle1
-                        )
-                        if (item.comment.isNullOrBlank().not()) {
-                            Text(
-                                text = item.comment!!,
-                                style = MaterialTheme.typography.body2,
-                                color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
-                            )
-                        }
-                        Text(
-                            text = item.weekDay,
-                            style = MaterialTheme.typography.caption,
+                            text = item.comment!!,
+                            style = MaterialTheme.typography.body2,
                             color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
                         )
                     }
+                    Text(
+                        text = item.weekDay,
+                        style = MaterialTheme.typography.caption,
+                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
+                    )
                 }
+            }
 
-                Column(
-                    modifier = Modifier.fillMaxHeight(),
-                    horizontalAlignment = Alignment.End,
-                    verticalArrangement = Arrangement.SpaceBetween
-                ) {
-                    item.daysAgoForLastCycle?.let { days ->
-                        if (item.daysAgoForLastCycle.second.isNotBlank()) {
-                            DaysElapsedChip(daysElapsed = days, text = "${item.daysAgoForLastCycle.second} cycle")
-                        }
+            Column(
+                modifier = Modifier.fillMaxHeight(),
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                item.daysAgoForLastCycle?.let { days ->
+                    if (item.daysAgoForLastCycle.second.isNotBlank()) {
+                        DaysElapsedChip(daysElapsed = days, text = "${item.daysAgoForLastCycle.second} cycle")
                     }
                 }
             }
