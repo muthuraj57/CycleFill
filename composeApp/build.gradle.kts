@@ -10,7 +10,6 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     kotlin("plugin.serialization")
-    id("com.google.gms.google-services")
     alias(libs.plugins.ksp)
 }
 
@@ -47,7 +46,6 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
-            implementation(project.dependencies.platform(libs.firebase.bom))
             implementation(libs.ktor.android)
         }
         commonMain.dependencies {
@@ -63,8 +61,6 @@ kotlin {
             implementation(libs.navigation)
             implementation(libs.kotlin.seriazliation.json)
             implementation(libs.kotlinx.coroutines.core)
-            implementation(libs.gitlive.firestore)
-            implementation(libs.gitlive.storage)
             implementation(libs.kotlin.inject.runtime)
             implementation(libs.coil.compose)
             implementation(libs.coil.ktor)

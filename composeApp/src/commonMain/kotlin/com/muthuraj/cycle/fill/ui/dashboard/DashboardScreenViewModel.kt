@@ -126,6 +126,8 @@ class DashboardScreenViewModel(
                                 itemName = event.category.name
                             )
                         }
+
+                        else -> throw IllegalStateException("Invalid dashboard screen type")
                     }
                     navigationManager.navigate(nextScreen)
                 }

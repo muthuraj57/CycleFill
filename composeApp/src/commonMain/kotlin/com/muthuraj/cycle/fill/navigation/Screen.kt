@@ -10,11 +10,12 @@ import kotlinx.serialization.Serializable
 sealed class Screen {
 
     @Serializable
-    data class Dashboard(val type: Type, val categoryId: Int? = null, val categoryName: String? = null) :
+    data class Dashboard(val type: Int, val categoryId: Int? = null, val categoryName: String? = null) :
         Screen() {
 
-        enum class Type {
-            Category, SubCategory
+        object Type {
+            const val Category = 1
+            const val SubCategory = 2
         }
     }
 
