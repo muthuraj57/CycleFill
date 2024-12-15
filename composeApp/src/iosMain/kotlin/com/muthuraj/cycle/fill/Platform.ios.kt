@@ -20,10 +20,10 @@ actual fun isDebug() = kotlin.native.Platform.isDebugBinary
 actual fun provideHttpClient(): HttpClient {
     return HttpClient(Darwin) {
         setup()
-        engine {
-            handleChallenge { session, task, challenge, completionHandler ->
-                completionHandler(NSURLSessionAuthChallengeUseCredential.toInt(), NSURLCredential())
-            }
-        }
+//        engine {
+//            handleChallenge { session, task, challenge, completionHandler ->
+//                completionHandler(NSURLSessionAuthChallengeUseCredential.toInt(), NSURLCredential())
+//            }
+//        }
     }
 }
