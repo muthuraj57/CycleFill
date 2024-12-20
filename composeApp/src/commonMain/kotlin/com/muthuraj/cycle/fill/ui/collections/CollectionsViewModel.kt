@@ -6,6 +6,7 @@ import com.muthuraj.cycle.fill.navigation.NavigationManager
 import com.muthuraj.cycle.fill.navigation.Screen
 import com.muthuraj.cycle.fill.network.NetworkManager
 import com.muthuraj.cycle.fill.util.BaseViewModel
+import com.muthuraj.cycle.fill.util.formatToIndianRupee
 import com.muthuraj.cycle.fill.util.getDaysElapsed
 import com.muthuraj.cycle.fill.util.log
 import com.muthuraj.cycle.fill.util.printDebugStackTrace
@@ -45,7 +46,8 @@ class CollectionsViewModel(
                                 name = it.name,
                                 documentPath = it.id.toString(),
                                 lastRefillDate = it.lastDate?.toDate(),
-                                daysElapsed = it.lastDate?.getDaysElapsed()
+                                daysElapsed = it.lastDate?.getDaysElapsed(),
+                                totalAmount = it.totalAmount?.let(::formatToIndianRupee)
                             )
                         }
                     setState {

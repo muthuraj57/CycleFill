@@ -20,7 +20,8 @@ data class CollectionResponse(
     val id: Int,
     val name: String,
     val subCategoryId: Int,
-    val lastDate: String?
+    val lastDate: String?,
+    val totalAmount: Long?
 )
 
 @Serializable

@@ -5,5 +5,6 @@ data class Collection(
     val name: String,
     val documentPath: String,
     val lastRefillDate: String?,
-    val daysElapsed: Pair<Int, String>?
+    val daysElapsed: Pair<Int, String>?,
+    val totalAmount: String?
 )

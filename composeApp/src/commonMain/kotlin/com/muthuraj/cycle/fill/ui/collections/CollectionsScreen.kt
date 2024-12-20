@@ -173,6 +173,13 @@ private fun CollectionItem(
                     text = collection.name,
                     style = MaterialTheme.typography.subtitle1
                 )
+                if (collection.totalAmount != null) {
+                    Text(
+                        text = "Total amount: ${collection.totalAmount}",
+                        style = MaterialTheme.typography.caption,
+                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
+                    )
+                }
                 if (collection.lastRefillDate != null) {
                     Text(
                         text = "Last: ${collection.lastRefillDate}",
