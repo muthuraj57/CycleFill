@@ -12,6 +12,7 @@ import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.Button
 import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.RadioButton
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
@@ -84,11 +85,15 @@ fun SettingsScreen(screenState: SettingsScreenState, doAction: (SettingsScreenEv
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(modifier = Modifier.weight(1f), text = "App theme")
-                Text(screenState.theme.name)
+                Text(
+                    screenState.theme.name,
+                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.56f)
+                )
                 Icon(
                     modifier = Modifier.size(24.dp),
                     painter = painterResource(Res.drawable.arrow_right),
-                    contentDescription = null
+                    contentDescription = null,
+                    tint = MaterialTheme.colors.onSurface.copy(alpha = 0.56f)
                 )
             }
         }
