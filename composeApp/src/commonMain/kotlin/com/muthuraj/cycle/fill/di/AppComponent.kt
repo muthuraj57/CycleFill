@@ -10,6 +10,8 @@ import com.muthuraj.cycle.fill.ui.items.ItemsViewModel
 import com.muthuraj.cycle.fill.ui.dashboard.DashboardScreenViewModel
 import com.muthuraj.cycle.fill.ui.collections.CollectionsViewModel
 import com.muthuraj.cycle.fill.ui.recents.RecentsViewModel
+import com.muthuraj.cycle.fill.ui.settings.SettingsScreenViewModel
+import com.muthuraj.cycle.fill.ui.settings.SettingsWrapper
 import me.tatarka.inject.annotations.Component
 import me.tatarka.inject.annotations.Provides
 
@@ -32,4 +34,8 @@ abstract class AppComponent(
     abstract val itemsViewModelProvider: (Screen.Items) -> ItemsViewModel
     
     abstract val recentsViewModelProvider: () -> RecentsViewModel
+
+    abstract val settings: SettingsWrapper
+
+    abstract val settingsViewModelProvider: (Screen.Settings) -> SettingsScreenViewModel
 }

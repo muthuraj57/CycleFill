@@ -90,6 +90,7 @@ kotlin {
             implementation(libs.coil.ktor)
             implementation(libs.kotlinx.datetime)
             implementation(libs.bundles.ktor)
+            implementation(libs.multiplatform.settings)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

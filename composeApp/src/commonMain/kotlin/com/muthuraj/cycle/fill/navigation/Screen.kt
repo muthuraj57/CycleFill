@@ -33,4 +33,7 @@ sealed class Screen {
         val collectionId: Int,
         val collectionName: String
     ) : Screen()
+
+    @Serializable
+    data object Settings: Screen()
 }

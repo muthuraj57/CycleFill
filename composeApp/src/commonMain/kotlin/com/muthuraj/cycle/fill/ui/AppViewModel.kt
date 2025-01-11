@@ -37,6 +37,11 @@ class AppViewModel(private val navigationManager: NavigationManager) :
                             setState { copy(currentBottomNavItem = event.bottomNavItem) }
                             navigationManager.navigate(Screen.Recents)
                         }
+
+                        BottomNavItem.Settings -> {
+                            setState { copy(currentBottomNavItem = event.bottomNavItem) }
+                            navigationManager.navigate(Screen.Settings)
+                        }
                     }
                 }
             }

@@ -1,5 +1,6 @@
 package com.muthuraj.cycle.fill.ui
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.BottomNavigation
@@ -8,10 +9,13 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
+import androidx.compose.material.darkColors
+import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -29,17 +33,38 @@ import com.muthuraj.cycle.fill.ui.collections.CollectionsViewModel
 import com.muthuraj.cycle.fill.ui.dashboard.DashboardScreen
 import com.muthuraj.cycle.fill.ui.items.ItemsScreen
 import com.muthuraj.cycle.fill.ui.recents.RecentsScreen
+import com.muthuraj.cycle.fill.ui.settings.SettingsScreen
+import com.muthuraj.cycle.fill.ui.settings.Theme
 import kotlinx.coroutines.flow.Flow
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 @Preview
 fun App() {
-    MaterialTheme {
-        val navController = rememberNavController()
-        val appComponent = remember(navController) {
-            AppComponent::class.create(navController)
+    val navController = rememberNavController()
+    val appComponent = remember(navController) {
+        AppComponent::class.create(navController)
+    }
+
+    val initialTheme = remember { appComponent.settings.getTheme() }
+    val theme by produceState(initialTheme) {
+        appComponent.settings.themeStateFlow.collect {
+            value = it
         }
+    }
+
+    val colors = when (theme) {
+        Theme.Dark -> darkColors()
+        Theme.Light -> lightColors()
+        Theme.System -> {
+            if (isSystemInDarkTheme()) {
+                darkColors()
+            } else {
+                lightColors()
+            }
+        }
+    }
+    MaterialTheme(colors = colors) {
 
         val appViewModel = viewModel { appComponent.appViewModelProvider() }
 
@@ -122,6 +147,12 @@ fun App() {
                         onBackClick = { navController.navigateUp() }
                     )
                 }
+                composable<Screen.Settings> {
+                    val viewModel =
+                        viewModel { appComponent.settingsViewModelProvider(it.toRoute()) }
+                    val screenState by viewModel.viewState.collectAsState()
+                    SettingsScreen(screenState = screenState, doAction = viewModel::setEvent)
+                }
             }
         }
     }
@@ -157,6 +188,16 @@ private suspend fun observeNavigation(
                 }
 
                 Screen.Recents -> {
+                    navController.navigate(it) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+
+                Screen.Settings -> {
                     navController.navigate(it) {
                         popUpTo(navController.graph.findStartDestination().id) {
                             saveState = true

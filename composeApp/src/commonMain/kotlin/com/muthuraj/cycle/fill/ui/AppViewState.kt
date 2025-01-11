@@ -4,6 +4,7 @@ package com.muthuraj.cycle.fill.ui
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.muthuraj.cycle.fill.util.ViewState
 
@@ -21,5 +22,6 @@ enum class BottomNavItem(
     val label: String
 ) {
     Dashboard(Icons.Default.Home, "Dashboard"),
-    Recents(Icons.Default.List, "Recents")
+    Recents(Icons.Default.List, "Recents"),
+    Settings(Icons.Default.Settings, "Settings"),
 }
