@@ -1,16 +1,13 @@
 package com.muthuraj.cycle.fill.ui
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
+import androidx.compose.material.LocalAbsoluteElevation
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
-import androidx.compose.material.darkColors
-import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -33,8 +30,8 @@ import com.muthuraj.cycle.fill.ui.collections.CollectionsViewModel
 import com.muthuraj.cycle.fill.ui.dashboard.DashboardScreen
 import com.muthuraj.cycle.fill.ui.items.ItemsScreen
 import com.muthuraj.cycle.fill.ui.recents.RecentsScreen
+import com.muthuraj.cycle.fill.ui.settings.CycleFillTheme
 import com.muthuraj.cycle.fill.ui.settings.SettingsScreen
-import com.muthuraj.cycle.fill.ui.settings.Theme
 import kotlinx.coroutines.flow.Flow
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -52,19 +49,7 @@ fun App() {
             value = it
         }
     }
-
-    val colors = when (theme) {
-        Theme.Dark -> darkColors()
-        Theme.Light -> lightColors()
-        Theme.System -> {
-            if (isSystemInDarkTheme()) {
-                darkColors()
-            } else {
-                lightColors()
-            }
-        }
-    }
-    MaterialTheme(colors = colors) {
+    CycleFillTheme(theme = theme) {
 
         val appViewModel = viewModel { appComponent.appViewModelProvider() }
 
@@ -148,6 +133,7 @@ fun App() {
                     )
                 }
                 composable<Screen.Settings> {
+                    LocalAbsoluteElevation.current
                     val viewModel =
                         viewModel { appComponent.settingsViewModelProvider(it.toRoute()) }
                     val screenState by viewModel.viewState.collectAsState()

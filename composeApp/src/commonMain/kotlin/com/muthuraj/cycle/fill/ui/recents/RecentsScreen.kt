@@ -42,6 +42,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.muthuraj.cycle.fill.ui.settings.DarkThemeEnabled
 import com.muthuraj.cycle.fill.util.compose.NetworkSwitchIcon
 import com.muthuraj.cycle.fill.util.compose.DaysElapsedChip
 import com.muthuraj.cycle.fill.util.compose.ErrorWithRetry
@@ -352,7 +353,15 @@ fun GroupCard(
 }
 
 val CategoryColor = Color(0xFF078507)
-val SubCategoryColor = Color.Blue
+val SubCategoryColor: Color
+    @Composable
+    get() {
+        return if (DarkThemeEnabled.current) {
+            Color(0xFF6D6DC7)
+        } else {
+            Color.Blue
+        }
+    }
 val CollectionColor = Color(0xFF056E6E)
 val CombinedCategorySubColor = Color.Magenta
 val CombinedAllColor = Color.Red  // Combined Category+Subcategory+Collection
