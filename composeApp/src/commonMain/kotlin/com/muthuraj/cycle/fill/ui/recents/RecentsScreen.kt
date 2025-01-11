@@ -30,7 +30,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.muthuraj.cycle.fill.ui.items.ItemsScreenEvent
 import com.muthuraj.cycle.fill.util.compose.DaysElapsedChip
+import com.muthuraj.cycle.fill.util.compose.ErrorWithRetry
 
 @Composable
 fun RecentsScreen(
@@ -39,12 +41,10 @@ fun RecentsScreen(
 ) {
     when (screenState) {
         is RecentsScreenState.Error -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text = screenState.message)
-            }
+            ErrorWithRetry(
+                error = screenState.message,
+                onRetryClick = { doAction(RecentsScreenEvent.Retry) }
+            )
         }
 
         RecentsScreenState.Loading -> {

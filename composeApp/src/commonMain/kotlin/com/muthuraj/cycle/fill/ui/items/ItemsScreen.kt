@@ -46,7 +46,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.muthuraj.cycle.fill.ui.dashboard.DashboardScreenEvent
 import com.muthuraj.cycle.fill.util.compose.DaysElapsedChip
+import com.muthuraj.cycle.fill.util.compose.ErrorWithRetry
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -58,12 +60,10 @@ fun ItemsScreen(
 ) {
     when (screenState) {
         is ItemsScreenState.Error -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text = screenState.message)
-            }
+            ErrorWithRetry(
+                error = screenState.message,
+                onRetryClick = { doAction(ItemsScreenEvent.Retry) }
+            )
         }
 
         ItemsScreenState.Loading -> {

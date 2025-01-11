@@ -26,23 +26,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.muthuraj.cycle.fill.models.Category
+import com.muthuraj.cycle.fill.util.compose.ErrorWithRetry
 
 @Composable
 fun DashboardScreen(screenState: DashboardScreenState, doAction: (DashboardScreenEvent) -> Unit) {
     when (screenState) {
         is DashboardScreenState.Error -> {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = screenState.message, textAlign = TextAlign.Center)
-                    Spacer(modifier = Modifier.size(24.dp))
-                    Button(onClick = { doAction(DashboardScreenEvent.Retry) }) {
-                        Text(text = "Retry")
-                    }
-                }
-            }
+            ErrorWithRetry(
+                error = screenState.message,
+                onRetryClick = { doAction(DashboardScreenEvent.Retry) }
+            )
         }
 
         DashboardScreenState.Loading -> {

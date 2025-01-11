@@ -1,5 +1,6 @@
 package com.muthuraj.cycle.fill.ui
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
@@ -61,6 +62,7 @@ fun App() {
         val appScreenState by appViewModel.viewState.collectAsState()
 
         Scaffold(
+            modifier = Modifier.fillMaxSize(),
             bottomBar = {
                 BottomNavigation {
                     appScreenState.bottomNavItems.forEach { item ->

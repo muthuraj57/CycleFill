@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.muthuraj.cycle.fill.models.Collection
 import com.muthuraj.cycle.fill.util.compose.DaysElapsedChip
+import com.muthuraj.cycle.fill.util.compose.ErrorWithRetry
 
 @Composable
 fun CollectionsScreen(
@@ -49,12 +50,10 @@ fun CollectionsScreen(
 ) {
     when (screenState) {
         is CollectionsScreenState.Error -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text = screenState.message)
-            }
+            ErrorWithRetry(
+                error = screenState.message,
+                onRetryClick = { doAction(CollectionsScreenEvent.Retry) }
+            )
         }
 
         CollectionsScreenState.Loading -> {
