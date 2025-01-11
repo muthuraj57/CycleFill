@@ -1,5 +1,6 @@
 package com.muthuraj.cycle.fill.ui.items
 
+import com.muthuraj.cycle.fill.ui.recents.RecentsScreenEvent
 import com.muthuraj.cycle.fill.util.ViewEvent
 
 sealed interface ItemsScreenEvent : ViewEvent {
@@ -11,4 +12,5 @@ sealed interface ItemsScreenEvent : ViewEvent {
     data object DismissDialog : ItemsScreenEvent
     data object Retry : ItemsScreenEvent
     data class AddComment(val itemId: Int, val comment: String): ItemsScreenEvent
+    data class Search(val searchText: String) : ItemsScreenEvent
 } 

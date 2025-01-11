@@ -11,7 +11,8 @@ sealed interface RecentsScreenState : ViewState {
 
     @Stable
     data class Success(
-        val dates: RecentData
+        val dates: RecentData,
+        val isPrivacyEnabled: Boolean
     ) : RecentsScreenState
 }
 

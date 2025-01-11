@@ -10,7 +10,11 @@ import com.muthuraj.cycle.fill.util.printDebugStackTrace
 import com.muthuraj.cycle.fill.util.toDateWithDayName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 
@@ -24,6 +28,8 @@ class ItemsViewModel(
         ItemsScreenState.Loading
 
     private val collectionName = items.collectionName
+
+    private val searchTextFlow = MutableStateFlow("")
 
     init {
         loadDates()
@@ -39,25 +45,37 @@ class ItemsViewModel(
             if (result.isSuccess) {
                 val response = result.getOrThrow()
                 if (response.success) {
-                    val dates = response.data!!.mapIndexed { index, item ->
-                        val (date, weekDay) = item.date.toDateWithDayName()
-                        val previousTimeStamp = response.data.getOrNull(index + 1)
-                        val daysAgoForLastCycle =
-                            previousTimeStamp?.date?.getDaysElapsedUntil(item.date)
-                        Item(
-                            id = item.id,
-                            date = date,
-                            daysAgoForLastCycle = daysAgoForLastCycle,
-                            weekDay = weekDay,
-                            timestamp = item.date,
-                            comment = item.description
-                        )
-                    }
-                    setState {
-                        ItemsScreenState.Success(
-                            collectionName = collectionName,
-                            dates = dates
-                        )
+                    val data = response.data!!
+                    searchTextFlow.debounce(300).collectLatest { searchText ->
+                        withContext(Dispatchers.Default) {
+                            val dates = if (searchText.isNotEmpty()) {
+                                data.filter {
+                                    it.date.contains(searchText, ignoreCase = true) ||
+                                            it.description.contains(searchText, ignoreCase = true)
+                                }
+                            } else {
+                                data
+                            }.mapIndexed { index, item ->
+                                val (date, weekDay) = item.date.toDateWithDayName()
+                                val previousTimeStamp = data.getOrNull(index + 1)
+                                val daysAgoForLastCycle =
+                                    previousTimeStamp?.date?.getDaysElapsedUntil(item.date)
+                                Item(
+                                    id = item.id,
+                                    date = date,
+                                    daysAgoForLastCycle = daysAgoForLastCycle,
+                                    weekDay = weekDay,
+                                    timestamp = item.date,
+                                    comment = item.description
+                                )
+                            }
+                            setState {
+                                ItemsScreenState.Success(
+                                    collectionName = collectionName,
+                                    dates = dates
+                                )
+                            }
+                        }
                     }
                 } else {
                     log { "Error loading collection items: ${response.message}" }
@@ -167,6 +185,10 @@ class ItemsViewModel(
                         log { "Error deleting date: $e" }
                     }
                 }
+            }
+
+            is ItemsScreenEvent.Search -> {
+                searchTextFlow.value = event.searchText
             }
         }
     }

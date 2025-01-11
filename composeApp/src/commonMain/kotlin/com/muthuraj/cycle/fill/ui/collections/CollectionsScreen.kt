@@ -19,7 +19,6 @@ import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
 import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -28,7 +27,9 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
+import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.runtime.Composable
@@ -41,65 +42,86 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.muthuraj.cycle.fill.models.Collection
+import com.muthuraj.cycle.fill.util.compose.NetworkSwitchIcon
 import com.muthuraj.cycle.fill.util.compose.DaysElapsedChip
 import com.muthuraj.cycle.fill.util.compose.ErrorWithRetry
 
 @Composable
 fun CollectionsScreen(
+    itemName: String,
     screenState: CollectionsScreenState,
-    doAction: (CollectionsScreenEvent) -> Unit
+    doAction: (CollectionsScreenEvent) -> Unit,
+    onBackClick: () -> Unit
 ) {
     LaunchedEffect(Unit) {
         doAction(CollectionsScreenEvent.ScreenOpened)
     }
 
-    when (screenState) {
-        is CollectionsScreenState.Error -> {
-            ErrorWithRetry(
-                error = screenState.message,
-                onRetryClick = { doAction(CollectionsScreenEvent.Retry) }
-            )
-        }
-
-        CollectionsScreenState.Loading -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        }
-
-        is CollectionsScreenState.Success -> {
-            if (screenState.showAddDialog) {
-                AddCollectionDialog(
-                    onDismiss = { doAction(CollectionsScreenEvent.DismissDialog) },
-                    onConfirm = { name -> doAction(CollectionsScreenEvent.AddCollection(name)) }
-                )
-            }
-
-            screenState.deleteConfirmation?.let {
-                DeleteConfirmationDialog(
-                    onDismiss = { doAction(CollectionsScreenEvent.DismissDeleteConfirmation) },
-                    onConfirm = { doAction(CollectionsScreenEvent.ConfirmDelete) }
-                )
-            }
-
-            if (screenState.collections.isEmpty()) {
-                EmptyState(
-                    itemName = screenState.itemName,
-                    onAddClick = { doAction(CollectionsScreenEvent.AddCollectionClicked) }
-                )
-            } else {
-                Scaffold(
-                    floatingActionButton = {
-                        FloatingActionButton(
-                            onClick = { doAction(CollectionsScreenEvent.AddCollectionClicked) }
-                        ) {
-                            Icon(Icons.Default.Add, "Add Tracking")
-                        }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(itemName) },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                        )
                     }
-                ) { paddingValues ->
+                },
+                actions = {
+                    NetworkSwitchIcon()
+                }
+            )
+        },
+        floatingActionButton = {
+            if (screenState is CollectionsScreenState.Success) {
+                FloatingActionButton(
+                    onClick = { doAction(CollectionsScreenEvent.AddCollectionClicked) }
+                ) {
+                    Icon(Icons.Default.Add, "Add Tracking")
+                }
+            }
+        }
+    ) { paddingValues ->
+        when (screenState) {
+            is CollectionsScreenState.Error -> {
+                ErrorWithRetry(
+                    error = screenState.message,
+                    onRetryClick = { doAction(CollectionsScreenEvent.Retry) }
+                )
+            }
+
+            CollectionsScreenState.Loading -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            is CollectionsScreenState.Success -> {
+                if (screenState.showAddDialog) {
+                    AddCollectionDialog(
+                        onDismiss = { doAction(CollectionsScreenEvent.DismissDialog) },
+                        onConfirm = { name -> doAction(CollectionsScreenEvent.AddCollection(name)) }
+                    )
+                }
+
+                screenState.deleteConfirmation?.let {
+                    DeleteConfirmationDialog(
+                        onDismiss = { doAction(CollectionsScreenEvent.DismissDeleteConfirmation) },
+                        onConfirm = { doAction(CollectionsScreenEvent.ConfirmDelete) }
+                    )
+                }
+
+                if (screenState.collections.isEmpty()) {
+                    EmptyState(
+                        itemName = screenState.itemName,
+                        onAddClick = { doAction(CollectionsScreenEvent.AddCollectionClicked) }
+                    )
+                } else {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -148,7 +170,6 @@ fun CollectionsScreen(
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun CollectionItem(
     collection: Collection,

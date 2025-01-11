@@ -30,10 +30,14 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
+import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,72 +50,122 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.muthuraj.cycle.fill.ui.dashboard.DashboardScreenEvent
+import com.muthuraj.cycle.fill.util.compose.NetworkSwitchIcon
 import com.muthuraj.cycle.fill.util.compose.DaysElapsedChip
 import com.muthuraj.cycle.fill.util.compose.ErrorWithRetry
+import com.muthuraj.cycle.fill.util.compose.SearchField
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
 @Composable
 fun ItemsScreen(
+    collectionName: String,
     screenState: ItemsScreenState,
     doAction: (ItemsScreenEvent) -> Unit,
-    onDataUpdated: ()-> Unit
+    onDataUpdated: () -> Unit,
+    onBackClick: () -> Unit
 ) {
-    when (screenState) {
-        is ItemsScreenState.Error -> {
-            ErrorWithRetry(
-                error = screenState.message,
-                onRetryClick = { doAction(ItemsScreenEvent.Retry) }
-            )
-        }
-
-        ItemsScreenState.Loading -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        }
-
-        is ItemsScreenState.Success -> {
-            if (screenState.showAddDialog) {
-                AddDateDialog(
-                    onDismiss = { doAction(ItemsScreenEvent.DismissDialog) },
-                    onConfirm = {
-                        dateTime -> doAction(ItemsScreenEvent.AddDate(dateTime))
-                        onDataUpdated()
+    Scaffold(
+        topBar = {
+            var showSearchBar by remember { mutableStateOf(false) }
+            TopAppBar(
+                title = {
+                    if (showSearchBar) {
+                        SearchField(onSearch = {
+                            doAction(ItemsScreenEvent.Search(it))
+                        })
+                    } else {
+                        Text(collectionName)
                     }
-                )
-            }
-
-            screenState.deleteConfirmation?.let {
-                DeleteConfirmationDialog(
-                    onDismiss = { doAction(ItemsScreenEvent.DismissDeleteConfirmation) },
-                    onConfirm = {
-                        doAction(ItemsScreenEvent.ConfirmDelete)
-                        onDataUpdated()
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                        )
                     }
-                )
-            }
-
-            if (screenState.dates.isEmpty()) {
-                EmptyState(
-                    collectionName = screenState.collectionName,
-                    onAddClick = { doAction(ItemsScreenEvent.AddDateClicked) }
-                )
-            } else {
-                Scaffold(
-                    floatingActionButton = {
-                        FloatingActionButton(
-                            onClick = { doAction(ItemsScreenEvent.AddDateClicked) }
-                        ) {
-                            Icon(Icons.Default.Add, "Add Date")
+                },
+                actions = {
+                    if (screenState is ItemsScreenState.Success && screenState.dates.isNotEmpty()) {
+                        if (showSearchBar) {
+                            IconButton(onClick = {
+                                showSearchBar = false
+                                doAction(ItemsScreenEvent.Search(""))
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Close Search",
+                                )
+                            }
+                        } else {
+                            IconButton(onClick = { showSearchBar = true }) {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = "Search",
+                                )
+                            }
                         }
                     }
-                ) { paddingValues ->
+                    NetworkSwitchIcon()
+                }
+            )
+        },
+        floatingActionButton = {
+            if (screenState is ItemsScreenState.Success && screenState.dates.isNotEmpty()) {
+                FloatingActionButton(
+                    onClick = { doAction(ItemsScreenEvent.AddDateClicked) }
+                ) {
+                    Icon(Icons.Default.Add, "Add Date")
+                }
+            }
+        }
+    ) { paddingValues ->
+        when (screenState) {
+            is ItemsScreenState.Error -> {
+                ErrorWithRetry(
+                    error = screenState.message,
+                    onRetryClick = { doAction(ItemsScreenEvent.Retry) }
+                )
+            }
+
+            ItemsScreenState.Loading -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            is ItemsScreenState.Success -> {
+                if (screenState.showAddDialog) {
+                    AddDateDialog(
+                        onDismiss = { doAction(ItemsScreenEvent.DismissDialog) },
+                        onConfirm = { dateTime ->
+                            doAction(ItemsScreenEvent.AddDate(dateTime))
+                            onDataUpdated()
+                        }
+                    )
+                }
+
+                screenState.deleteConfirmation?.let {
+                    DeleteConfirmationDialog(
+                        onDismiss = { doAction(ItemsScreenEvent.DismissDeleteConfirmation) },
+                        onConfirm = {
+                            doAction(ItemsScreenEvent.ConfirmDelete)
+                            onDataUpdated()
+                        }
+                    )
+                }
+
+                if (screenState.dates.isEmpty()) {
+                    EmptyState(
+                        collectionName = screenState.collectionName,
+                        onAddClick = { doAction(ItemsScreenEvent.AddDateClicked) }
+                    )
+                } else {
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()

@@ -14,46 +14,80 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
+import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.muthuraj.cycle.fill.models.Category
+import com.muthuraj.cycle.fill.navigation.Screen
+import com.muthuraj.cycle.fill.util.compose.NetworkSwitchIcon
 import com.muthuraj.cycle.fill.util.compose.ErrorWithRetry
 
 @Composable
-fun DashboardScreen(screenState: DashboardScreenState, doAction: (DashboardScreenEvent) -> Unit) {
-    when (screenState) {
-        is DashboardScreenState.Error -> {
-            ErrorWithRetry(
-                error = screenState.message,
-                onRetryClick = { doAction(DashboardScreenEvent.Retry) }
+fun DashboardScreen(
+    screen: Screen.Dashboard,
+    screenState: DashboardScreenState,
+    doAction: (DashboardScreenEvent) -> Unit,
+    onBackClick: () -> Unit
+) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(screen.categoryName ?: "Categories")
+                },
+                navigationIcon = if (screen.categoryId != null) {
+                    {
+                        IconButton(onClick = onBackClick) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                            )
+                        }
+                    }
+                } else null,
+                actions = {
+                    NetworkSwitchIcon()
+                }
             )
         }
+    ) {
+        when (screenState) {
+            is DashboardScreenState.Error -> {
+                ErrorWithRetry(
+                    error = screenState.message,
+                    onRetryClick = { doAction(DashboardScreenEvent.Retry) }
+                )
+            }
 
-        DashboardScreenState.Loading -> {
-            Surface(modifier = Modifier.fillMaxSize()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(modifier = Modifier.size(32.dp))
+            DashboardScreenState.Loading -> {
+                Surface(modifier = Modifier.fillMaxSize()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(32.dp))
+                    }
                 }
             }
-        }
 
-        is DashboardScreenState.Success -> {
-            CategoriesList(
-                categories = screenState.categories,
-                doAction = doAction
-            )
+            is DashboardScreenState.Success -> {
+                CategoriesList(
+                    categories = screenState.categories,
+                    doAction = doAction
+                )
+            }
         }
     }
 }
