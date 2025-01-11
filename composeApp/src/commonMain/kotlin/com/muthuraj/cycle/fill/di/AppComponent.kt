@@ -1,6 +1,7 @@
 /* $Id$ */
 package com.muthuraj.cycle.fill.di
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import com.muthuraj.cycle.fill.navigation.NavigationManager
 import com.muthuraj.cycle.fill.navigation.Screen
@@ -26,7 +27,7 @@ abstract class AppComponent(
 
     abstract val appViewModelProvider: () -> AppViewModel
 
-    abstract val collectionsViewModelProvider: (Screen.Collections) -> CollectionsViewModel
+    abstract val collectionsViewModelProvider: (Screen.Collections, SavedStateHandle) -> CollectionsViewModel
 
     abstract val itemsViewModelProvider: (Screen.Items) -> ItemsViewModel
     

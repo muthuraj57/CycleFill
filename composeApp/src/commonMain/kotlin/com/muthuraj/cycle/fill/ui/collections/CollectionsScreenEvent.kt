@@ -12,4 +12,5 @@ sealed interface CollectionsScreenEvent : ViewEvent {
     data class CollectionClicked(val collection: Collection) : CollectionsScreenEvent
     data object DismissDialog : CollectionsScreenEvent
     data object Retry : CollectionsScreenEvent
-} 
+    data object ScreenOpened: CollectionsScreenEvent
+}

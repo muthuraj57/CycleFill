@@ -32,6 +32,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,6 +49,10 @@ fun CollectionsScreen(
     screenState: CollectionsScreenState,
     doAction: (CollectionsScreenEvent) -> Unit
 ) {
+    LaunchedEffect(Unit) {
+        doAction(CollectionsScreenEvent.ScreenOpened)
+    }
+
     when (screenState) {
         is CollectionsScreenState.Error -> {
             ErrorWithRetry(

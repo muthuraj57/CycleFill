@@ -56,7 +56,8 @@ import kotlinx.datetime.toLocalDateTime
 @Composable
 fun ItemsScreen(
     screenState: ItemsScreenState,
-    doAction: (ItemsScreenEvent) -> Unit
+    doAction: (ItemsScreenEvent) -> Unit,
+    onDataUpdated: ()-> Unit
 ) {
     when (screenState) {
         is ItemsScreenState.Error -> {
@@ -79,14 +80,20 @@ fun ItemsScreen(
             if (screenState.showAddDialog) {
                 AddDateDialog(
                     onDismiss = { doAction(ItemsScreenEvent.DismissDialog) },
-                    onConfirm = { dateTime -> doAction(ItemsScreenEvent.AddDate(dateTime)) }
+                    onConfirm = {
+                        dateTime -> doAction(ItemsScreenEvent.AddDate(dateTime))
+                        onDataUpdated()
+                    }
                 )
             }
 
             screenState.deleteConfirmation?.let {
                 DeleteConfirmationDialog(
                     onDismiss = { doAction(ItemsScreenEvent.DismissDeleteConfirmation) },
-                    onConfirm = { doAction(ItemsScreenEvent.ConfirmDelete) }
+                    onConfirm = {
+                        doAction(ItemsScreenEvent.ConfirmDelete)
+                        onDataUpdated()
+                    }
                 )
             }
 
@@ -131,6 +138,7 @@ fun ItemsScreen(
                                             comment = comment
                                         )
                                     )
+                                    onDataUpdated()
                                 }
                             )
                         }

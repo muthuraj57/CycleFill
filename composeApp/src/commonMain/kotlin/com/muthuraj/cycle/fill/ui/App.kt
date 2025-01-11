@@ -34,6 +34,7 @@ import com.muthuraj.cycle.fill.di.create
 import com.muthuraj.cycle.fill.navigation.Screen
 import com.muthuraj.cycle.fill.network.NetworkManager
 import com.muthuraj.cycle.fill.ui.collections.CollectionsScreen
+import com.muthuraj.cycle.fill.ui.collections.CollectionsViewModel
 import com.muthuraj.cycle.fill.ui.dashboard.DashboardScreen
 import com.muthuraj.cycle.fill.ui.items.ItemsScreen
 import com.muthuraj.cycle.fill.ui.recents.RecentsScreen
@@ -106,7 +107,7 @@ fun App() {
                 }
                 composable<Screen.Collections> {
                     val viewModel =
-                        viewModel { appComponent.collectionsViewModelProvider(it.toRoute()) }
+                        viewModel { appComponent.collectionsViewModelProvider(it.toRoute(), it.savedStateHandle) }
                     val screenState by viewModel.viewState.collectAsState()
                     CollectionsScreen(screenState = screenState, doAction = viewModel::setEvent)
                 }
@@ -116,7 +117,12 @@ fun App() {
                     val screenState by viewModel.viewState.collectAsState()
                     ItemsScreen(
                         screenState = screenState,
-                        doAction = viewModel::setEvent
+                        doAction = viewModel::setEvent,
+                        onDataUpdated = {
+                            navController.previousBackStackEntry
+                                ?.savedStateHandle
+                                ?.set(CollectionsViewModel.DATA_UPDATED_KEY, true)
+                        }
                     )
                 }
             }

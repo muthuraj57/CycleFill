@@ -1,5 +1,6 @@
 package com.muthuraj.cycle.fill.ui.collections
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.muthuraj.cycle.fill.models.Collection
 import com.muthuraj.cycle.fill.navigation.NavigationManager
@@ -9,9 +10,12 @@ import com.muthuraj.cycle.fill.util.BaseViewModel
 import com.muthuraj.cycle.fill.util.formatToIndianRupee
 import com.muthuraj.cycle.fill.util.getDaysElapsed
 import com.muthuraj.cycle.fill.util.log
+import com.muthuraj.cycle.fill.util.logE
 import com.muthuraj.cycle.fill.util.printDebugStackTrace
 import com.muthuraj.cycle.fill.util.toDate
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
@@ -20,17 +24,36 @@ import me.tatarka.inject.annotations.Inject
 class CollectionsViewModel(
     private val navigationManager: NavigationManager,
     private val networkManager: NetworkManager,
-    @Assisted private val collections: Screen.Collections
+    @Assisted private val collections: Screen.Collections,
+    @Assisted savedStateHandle: SavedStateHandle
 ) : BaseViewModel<CollectionsScreenEvent, CollectionsScreenState>() {
 
     override fun setInitialState(): CollectionsScreenState = CollectionsScreenState.Loading
 
+    private var shouldFetchDataOnScreenOpen = false
+
     init {
+        log { "CollectionsScreen screen viewModel created" }
         loadItemDetails()
+
+        savedStateHandle.getStateFlow(DATA_UPDATED_KEY, false)
+            .onEach {  dataUpdated->
+                log { "CollectionsScreen screen :: Data updated: $dataUpdated" }
+                if(dataUpdated) {
+                    shouldFetchDataOnScreenOpen = true
+                    savedStateHandle[DATA_UPDATED_KEY] = false
+                }
+            }.launchIn(viewModelScope)
+    }
+
+    override fun onCleared() {
+        logE { "CollectionsScreen screen viewModel cleared" }
+        super.onCleared()
     }
 
     private var job: Job? = null
     private fun loadItemDetails() {
+        log { "loadItemDetails() called" }
         job?.cancel()
         job = viewModelScope.launch {
             val result = runCatching {
@@ -71,6 +94,7 @@ class CollectionsViewModel(
 
                 }
             }
+            shouldFetchDataOnScreenOpen = false
         }
     }
 
@@ -157,6 +181,16 @@ class CollectionsViewModel(
                     ) ?: this
                 }
             }
+
+            CollectionsScreenEvent.ScreenOpened -> {
+                if(shouldFetchDataOnScreenOpen){
+                    loadItemDetails()
+                }
+            }
         }
+    }
+
+    companion object{
+        const val DATA_UPDATED_KEY = "data_updated"
     }
 }
