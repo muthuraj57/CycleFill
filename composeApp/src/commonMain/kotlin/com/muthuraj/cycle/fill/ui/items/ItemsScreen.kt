@@ -50,13 +50,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.muthuraj.cycle.fill.util.compose.NetworkSwitchIcon
 import com.muthuraj.cycle.fill.util.compose.DaysElapsedChip
 import com.muthuraj.cycle.fill.util.compose.ErrorWithRetry
+import com.muthuraj.cycle.fill.util.compose.NetworkSwitchIcon
 import com.muthuraj.cycle.fill.util.compose.SearchField
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 @Composable
 fun ItemsScreen(
@@ -361,7 +362,7 @@ fun EditCommentDialog(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class)
 @Composable
 private fun AddDateDialog(
     onDismiss: () -> Unit,
