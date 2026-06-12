@@ -16,7 +16,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
@@ -28,6 +31,7 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
+import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.material.TopAppBar
@@ -38,6 +42,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -49,10 +54,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import com.muthuraj.cycle.fill.util.compose.DaysElapsedChip
 import com.muthuraj.cycle.fill.util.compose.ErrorWithRetry
-import com.muthuraj.cycle.fill.util.compose.NetworkSwitchIcon
 import com.muthuraj.cycle.fill.util.compose.SearchField
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -108,8 +116,13 @@ fun ItemsScreen(
                                 )
                             }
                         }
+                        IconButton(onClick = { doAction(ItemsScreenEvent.ShowExport) }) {
+                            Icon(
+                                imageVector = Icons.Default.Share,
+                                contentDescription = "Export as JSON",
+                            )
+                        }
                     }
-                    NetworkSwitchIcon()
                 }
             )
         },
@@ -148,6 +161,13 @@ fun ItemsScreen(
                             doAction(ItemsScreenEvent.AddDate(dateTime))
                             onDataUpdated()
                         }
+                    )
+                }
+
+                screenState.exportJson?.let { json ->
+                    ExportJsonDialog(
+                        json = json,
+                        onDismiss = { doAction(ItemsScreenEvent.DismissExport) }
                     )
                 }
 
@@ -360,6 +380,55 @@ fun EditCommentDialog(
             }
         }
     )
+}
+
+@Composable
+private fun ExportJsonDialog(
+    json: String,
+    onDismiss: () -> Unit
+) {
+    val clipboardManager = LocalClipboardManager.current
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = MaterialTheme.shapes.medium,
+            elevation = 24.dp
+        ) {
+            Column(modifier = Modifier.padding(24.dp)) {
+                Text(
+                    text = "Export as JSON",
+                    style = MaterialTheme.typography.h6
+                )
+                Spacer(Modifier.height(16.dp))
+                Box(
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    SelectionContainer {
+                        Text(
+                            text = json,
+                            style = MaterialTheme.typography.caption,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
+                Row(modifier = Modifier.align(Alignment.End)) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Close")
+                    }
+                    TextButton(
+                        onClick = {
+                            clipboardManager.setText(AnnotatedString(json))
+                            onDismiss()
+                        }
+                    ) {
+                        Text("Copy")
+                    }
+                }
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class)

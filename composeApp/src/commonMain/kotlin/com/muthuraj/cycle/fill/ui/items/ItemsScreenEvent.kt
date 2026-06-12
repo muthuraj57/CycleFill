@@ -13,4 +13,6 @@ sealed interface ItemsScreenEvent : ViewEvent {
     data object Retry : ItemsScreenEvent
     data class AddComment(val itemId: Int, val comment: String): ItemsScreenEvent
     data class Search(val searchText: String) : ItemsScreenEvent
+    data object ShowExport : ItemsScreenEvent
+    data object DismissExport : ItemsScreenEvent
 } 

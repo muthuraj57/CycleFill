@@ -1,13 +1,19 @@
 package com.muthuraj.cycle.fill.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Icon
 import androidx.compose.material.LocalAbsoluteElevation
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
+import androidx.compose.material.primarySurface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -60,9 +66,9 @@ fun App() {
         val appScreenState by appViewModel.viewState.collectAsState()
 
         Scaffold(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colors.primarySurface).statusBarsPadding(),
             bottomBar = {
-                BottomNavigation {
+                BottomNavigation(modifier = Modifier.navigationBarsPadding()) {
                     appScreenState.bottomNavItems.forEach { item ->
                         BottomNavigationItem(
                             icon = { Icon(item.icon, contentDescription = item.label) },
