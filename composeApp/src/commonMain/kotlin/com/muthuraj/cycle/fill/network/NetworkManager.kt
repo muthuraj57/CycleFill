@@ -3,7 +3,9 @@ package com.muthuraj.cycle.fill.network
 
 import androidx.compose.runtime.mutableStateOf
 import com.muthuraj.cycle.fill.provideHttpClient
+import com.muthuraj.cycle.fill.util.log
 import io.ktor.client.call.body
+import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
@@ -12,6 +14,7 @@ import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import io.ktor.util.network.UnresolvedAddressException
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import me.tatarka.inject.annotations.Inject
@@ -25,8 +28,37 @@ class NetworkManager {
         provideHttpClient()
     }
 
-    suspend fun getCategories(): Response<CategoryResponse> {
-        return httpClient.get(BASE_URL) {
+    /**
+     * Runs [request] against the currently selected server URL. If it fails because the
+     * host could not be reached — a connect timeout or an unresolvable address, e.g. the
+     * local IP has no route because we're away from home — flips [useTailScaleUrl] and
+     * retries once against the other URL.
+     *
+     * Only connection-establishment failures are retried. Since the connection was never
+     * opened, the server never received the request, so retrying a write (POST/PUT/DELETE)
+     * cannot double-apply it. Every other failure (HTTP 4xx/5xx, read/request timeouts
+     * where the server *did* receive the request) propagates untouched.
+     *
+     * The flag is sticky for the session, so once the working URL is found subsequent
+     * requests go straight to it without paying the connect-timeout penalty again.
+     */
+    private suspend fun <T> withUrlFallback(request: suspend () -> T): T {
+        return try {
+            request()
+        } catch (e: Exception) {
+            if (e !is ConnectTimeoutException && e !is UnresolvedAddressException) {
+                throw e
+            }
+            val from = if (useTailScaleUrl) "tailscale" else "local"
+            val to = if (useTailScaleUrl) "local" else "tailscale"
+            log { "$from URL unreachable (${e.message}); retrying on $to URL" }
+            useTailScaleUrl = !useTailScaleUrl
+            request()
+        }
+    }
+
+    suspend fun getCategories(): Response<CategoryResponse> = withUrlFallback {
+        httpClient.get(BASE_URL) {
             parameter("endpoint", "categories")
         }.body<Response<CategoryResponse>>()
             .let { response ->
@@ -36,8 +68,8 @@ class NetworkManager {
             }
     }
 
-    suspend fun getSubCategories(categoryId: Int): Response<SubCategoryResponse> {
-        return httpClient.get(BASE_URL) {
+    suspend fun getSubCategories(categoryId: Int): Response<SubCategoryResponse> = withUrlFallback {
+        httpClient.get(BASE_URL) {
             parameter("endpoint", "subcategories")
             parameter("categoryId", categoryId)
         }.body<Response<SubCategoryResponse>>()
@@ -48,28 +80,28 @@ class NetworkManager {
             }
     }
 
-    suspend fun getCollections(subCategoryId: Int): Response<CollectionResponse> {
-        return httpClient.get(BASE_URL) {
+    suspend fun getCollections(subCategoryId: Int): Response<CollectionResponse> = withUrlFallback {
+        httpClient.get(BASE_URL) {
             parameter("endpoint", "collections")
             parameter("subCategoryId", subCategoryId)
         }.body()
     }
 
-    suspend fun getItems(collectionId: Int): Response<ItemResponse> {
-        return httpClient.get(BASE_URL) {
+    suspend fun getItems(collectionId: Int): Response<ItemResponse> = withUrlFallback {
+        httpClient.get(BASE_URL) {
             parameter("endpoint", "items")
             parameter("collectionId", collectionId)
         }.body()
     }
 
-    suspend fun getAllItems(): Response<ItemDetailedResponse> {
-        return httpClient.get(BASE_URL) {
+    suspend fun getAllItems(): Response<ItemDetailedResponse> = withUrlFallback {
+        httpClient.get(BASE_URL) {
             parameter("endpoint", "items-detailed")
         }.body()
     }
 
-    suspend fun addCategory(name: String, icon: String): PostResponse {
-        return httpClient.post(BASE_URL) {
+    suspend fun addCategory(name: String, icon: String): PostResponse = withUrlFallback {
+        httpClient.post(BASE_URL) {
             parameter("endpoint", "categories")
             contentType(ContentType.Application.Json)
             setBody(buildJsonObject {
@@ -79,8 +111,8 @@ class NetworkManager {
         }.body()
     }
 
-    suspend fun adSubCategory(name: String, icon: String, categoryId: Int): PostResponse {
-        return httpClient.post(BASE_URL) {
+    suspend fun adSubCategory(name: String, icon: String, categoryId: Int): PostResponse = withUrlFallback {
+        httpClient.post(BASE_URL) {
             parameter("endpoint", "subcategories")
             contentType(ContentType.Application.Json)
             setBody(buildJsonObject {
@@ -91,8 +123,8 @@ class NetworkManager {
         }.body()
     }
 
-    suspend fun addCollection(name: String, subCategoryId: Int): PostResponse {
-        return httpClient.post(BASE_URL) {
+    suspend fun addCollection(name: String, subCategoryId: Int): PostResponse = withUrlFallback {
+        httpClient.post(BASE_URL) {
             parameter("endpoint", "collections")
             contentType(ContentType.Application.Json)
             setBody(buildJsonObject {
@@ -102,8 +134,8 @@ class NetworkManager {
         }.body()
     }
 
-    suspend fun addItem(date: String, description: String, collectionId: Int): PostResponse {
-        return httpClient.post(BASE_URL) {
+    suspend fun addItem(date: String, description: String, collectionId: Int): PostResponse = withUrlFallback {
+        httpClient.post(BASE_URL) {
             parameter("endpoint", "items")
             contentType(ContentType.Application.Json)
             setBody(buildJsonObject {
@@ -114,8 +146,8 @@ class NetworkManager {
         }.body()
     }
 
-    suspend fun updateItemDescription(itemId: Int, description: String): PostResponse {
-        return httpClient.put(BASE_URL) {
+    suspend fun updateItemDescription(itemId: Int, description: String): PostResponse = withUrlFallback {
+        httpClient.put(BASE_URL) {
             parameter("endpoint", "items")
             parameter("id", itemId)
             contentType(ContentType.Application.Json)
@@ -125,15 +157,15 @@ class NetworkManager {
         }.body()
     }
 
-    suspend fun deleteItem(itemId: Int): PostResponse {
-        return httpClient.delete(BASE_URL) {
+    suspend fun deleteItem(itemId: Int): PostResponse = withUrlFallback {
+        httpClient.delete(BASE_URL) {
             parameter("endpoint", "items")
             parameter("id", itemId)
         }.body()
     }
 
-    suspend fun deleteCollection(collectionId: Int): PostResponse {
-        return httpClient.delete(BASE_URL) {
+    suspend fun deleteCollection(collectionId: Int): PostResponse = withUrlFallback {
+        httpClient.delete(BASE_URL) {
             parameter("endpoint", "collections")
             parameter("id", collectionId)
         }.body()

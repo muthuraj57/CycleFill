@@ -3,6 +3,7 @@ package com.muthuraj.cycle.fill
 import com.muthuraj.cycle.fill.util.log
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
@@ -39,6 +40,11 @@ fun HttpClientConfig<*>.setup() {
     }
     install(ContentNegotiation) {
         json(json, contentType = ContentType.Any)
+    }
+    install(HttpTimeout) {
+        // Keep connect short so the local <-> tailscale URL fallback is fast.
+        connectTimeoutMillis = 4_000
+        requestTimeoutMillis = 30_000
     }
     expectSuccess = true
 }
