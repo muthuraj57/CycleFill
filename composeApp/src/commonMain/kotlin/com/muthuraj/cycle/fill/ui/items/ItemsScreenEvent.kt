@@ -15,4 +15,9 @@ sealed interface ItemsScreenEvent : ViewEvent {
     data class Search(val searchText: String) : ItemsScreenEvent
     data object ShowExport : ItemsScreenEvent
     data object DismissExport : ItemsScreenEvent
+    data class EnterSelectionMode(val itemId: Int) : ItemsScreenEvent
+    data class ToggleSelection(val itemId: Int) : ItemsScreenEvent
+    data object SelectUpToTop : ItemsScreenEvent
+    data object SelectUpToBottom : ItemsScreenEvent
+    data object ExitSelectionMode : ItemsScreenEvent
 } 

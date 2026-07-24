@@ -209,10 +209,73 @@ class ItemsViewModel(
             }
 
             ItemsScreenEvent.ShowExport -> {
-                val json = buildExportJson()
+                val selectedIds = (viewState.value as? ItemsScreenState.Success)
+                    ?.selectedItemIds
+                    ?.takeIf { it.isNotEmpty() }
+                val json = buildExportJson(selectedIds)
                 setState {
                     (this as? ItemsScreenState.Success)?.copy(exportJson = json)
                         ?: this
+                }
+            }
+
+            is ItemsScreenEvent.EnterSelectionMode -> {
+                setState {
+                    (this as? ItemsScreenState.Success)?.copy(
+                        selectionAnchorId = event.itemId,
+                        selectedItemIds = setOf(event.itemId)
+                    ) ?: this
+                }
+            }
+
+            is ItemsScreenEvent.ToggleSelection -> {
+                setState {
+                    val state = this as? ItemsScreenState.Success ?: return@setState this
+                    val updated = if (event.itemId in state.selectedItemIds) {
+                        state.selectedItemIds - event.itemId
+                    } else {
+                        state.selectedItemIds + event.itemId
+                    }
+                    if (updated.isEmpty()) {
+                        state.copy(selectedItemIds = emptySet(), selectionAnchorId = null)
+                    } else {
+                        state.copy(selectedItemIds = updated)
+                    }
+                }
+            }
+
+            ItemsScreenEvent.SelectUpToTop -> {
+                setState {
+                    val state = this as? ItemsScreenState.Success ?: return@setState this
+                    val anchorIndex =
+                        state.dates.indexOfFirst { it.id == state.selectionAnchorId }
+                    if (anchorIndex == -1) return@setState this
+                    state.copy(
+                        selectedItemIds = state.selectedItemIds +
+                                state.dates.take(anchorIndex + 1).map { it.id }
+                    )
+                }
+            }
+
+            ItemsScreenEvent.SelectUpToBottom -> {
+                setState {
+                    val state = this as? ItemsScreenState.Success ?: return@setState this
+                    val anchorIndex =
+                        state.dates.indexOfFirst { it.id == state.selectionAnchorId }
+                    if (anchorIndex == -1) return@setState this
+                    state.copy(
+                        selectedItemIds = state.selectedItemIds +
+                                state.dates.drop(anchorIndex).map { it.id }
+                    )
+                }
+            }
+
+            ItemsScreenEvent.ExitSelectionMode -> {
+                setState {
+                    (this as? ItemsScreenState.Success)?.copy(
+                        selectedItemIds = emptySet(),
+                        selectionAnchorId = null
+                    ) ?: this
                 }
             }
 
@@ -226,8 +289,12 @@ class ItemsViewModel(
     }
 
     @OptIn(ExperimentalTime::class)
-    private fun buildExportJson(): String {
-        val data = rawItems
+    private fun buildExportJson(selectedIds: Set<Int>? = null): String {
+        val data = if (selectedIds != null) {
+            rawItems.filter { it.id in selectedIds }
+        } else {
+            rawItems
+        }
         val intervals = data.mapIndexedNotNull { index, item ->
             data.getOrNull(index + 1)?.date?.getDaysElapsedUntil(item.date)?.first
         }
@@ -241,6 +308,9 @@ class ItemsViewModel(
                     .toString()
             )
             put("totalEntries", data.size)
+            if (data.size < rawItems.size) {
+                put("partialExport", true)
+            }
             if (data.isNotEmpty()) {
                 putJsonObject("stats") {
                     put("daysSinceLastEntry", data.first().date.getDaysElapsed().first)

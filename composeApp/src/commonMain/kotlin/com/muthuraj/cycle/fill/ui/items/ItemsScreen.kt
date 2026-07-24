@@ -1,6 +1,8 @@
 package com.muthuraj.cycle.fill.ui.items
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +26,7 @@ import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
+import androidx.compose.material.Checkbox
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
@@ -43,6 +46,8 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.VerticalAlignBottom
+import androidx.compose.material.icons.filled.VerticalAlignTop
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -53,7 +58,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -67,6 +74,7 @@ import kotlinx.datetime.toLocalDateTime
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ItemsScreen(
     collectionName: String,
@@ -75,10 +83,22 @@ fun ItemsScreen(
     onDataUpdated: () -> Unit,
     onBackClick: () -> Unit
 ) {
+    BackHandler(
+        enabled = (screenState as? ItemsScreenState.Success)?.isSelectionMode == true
+    ) {
+        doAction(ItemsScreenEvent.ExitSelectionMode)
+    }
     Scaffold(
         topBar = {
             var showSearchBar by remember { mutableStateOf(false) }
-            TopAppBar(
+            val selectionState =
+                (screenState as? ItemsScreenState.Success)?.takeIf { it.isSelectionMode }
+            if (selectionState != null) {
+                SelectionTopBar(
+                    screenState = selectionState,
+                    doAction = doAction
+                )
+            } else TopAppBar(
                 title = {
                     if (showSearchBar) {
                         SearchField(onSearch = {
@@ -127,7 +147,7 @@ fun ItemsScreen(
             )
         },
         floatingActionButton = {
-            if (screenState is ItemsScreenState.Success && screenState.dates.isNotEmpty()) {
+            if (screenState is ItemsScreenState.Success && screenState.dates.isNotEmpty() && !screenState.isSelectionMode) {
                 FloatingActionButton(
                     onClick = { doAction(ItemsScreenEvent.AddDateClicked) }
                 ) {
@@ -197,10 +217,18 @@ fun ItemsScreen(
                         item {
                             Spacer(Modifier.padding(8.dp))
                         }
-                        items(screenState.dates) { item ->
+                        items(screenState.dates, key = { it.id }) { item ->
                             DateItem(
                                 item = item,
                                 index = screenState.dates.size - screenState.dates.indexOf(item),
+                                selectionMode = screenState.isSelectionMode,
+                                isSelected = item.id in screenState.selectedItemIds,
+                                onLongClick = {
+                                    doAction(ItemsScreenEvent.EnterSelectionMode(item.id))
+                                },
+                                onToggleSelection = {
+                                    doAction(ItemsScreenEvent.ToggleSelection(item.id))
+                                },
                                 onDelete = { id ->
                                     doAction(
                                         ItemsScreenEvent.ShowDeleteConfirmation(id)
@@ -228,9 +256,57 @@ fun ItemsScreen(
 }
 
 @Composable
+private fun SelectionTopBar(
+    screenState: ItemsScreenState.Success,
+    doAction: (ItemsScreenEvent) -> Unit
+) {
+    TopAppBar(
+        title = { Text("${screenState.selectedItemIds.size} selected") },
+        navigationIcon = {
+            IconButton(onClick = { doAction(ItemsScreenEvent.ExitSelectionMode) }) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Exit selection",
+                )
+            }
+        },
+        actions = {
+            val anchorId = screenState.selectionAnchorId
+            if (screenState.dates.firstOrNull()?.id != anchorId) {
+                IconButton(onClick = { doAction(ItemsScreenEvent.SelectUpToTop) }) {
+                    Icon(
+                        imageVector = Icons.Default.VerticalAlignTop,
+                        contentDescription = "Select up to top",
+                    )
+                }
+            }
+            if (screenState.dates.lastOrNull()?.id != anchorId) {
+                IconButton(onClick = { doAction(ItemsScreenEvent.SelectUpToBottom) }) {
+                    Icon(
+                        imageVector = Icons.Default.VerticalAlignBottom,
+                        contentDescription = "Select down to bottom",
+                    )
+                }
+            }
+            IconButton(onClick = { doAction(ItemsScreenEvent.ShowExport) }) {
+                Icon(
+                    imageVector = Icons.Default.Share,
+                    contentDescription = "Export selected as JSON",
+                )
+            }
+        }
+    )
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
 private fun DateItem(
     item: Item,
     index: Int,
+    selectionMode: Boolean,
+    isSelected: Boolean,
+    onLongClick: () -> Unit,
+    onToggleSelection: () -> Unit,
     onDelete: (Int) -> Unit,
     onEdit: (Int, String) -> Unit
 ) {
@@ -249,7 +325,19 @@ private fun DateItem(
     }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .combinedClickable(
+                onClick = { if (selectionMode) onToggleSelection() },
+                onLongClick = {
+                    if (selectionMode) onToggleSelection() else onLongClick()
+                }
+            ),
+        backgroundColor = if (isSelected) {
+            MaterialTheme.colors.primary.copy(alpha = 0.12f)
+        } else {
+            MaterialTheme.colors.surface
+        },
         elevation = 2.dp
     ) {
         Row(
@@ -264,6 +352,14 @@ private fun DateItem(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.weight(1f).fillMaxHeight()
             ) {
+                if (selectionMode) {
+                    Checkbox(
+                        checked = isSelected,
+                        onCheckedChange = { onToggleSelection() },
+                        modifier = Modifier.align(Alignment.Top).size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                }
                 Box(
                     modifier = Modifier
                         .size(24.dp)
@@ -314,7 +410,7 @@ private fun DateItem(
                         text = "${item.daysAgoForLastCycle.second} cycle"
                     )
                 }
-                Row(
+                if (!selectionMode) Row(
                     horizontalArrangement = Arrangement.End
                 ) {
                     IconButton(

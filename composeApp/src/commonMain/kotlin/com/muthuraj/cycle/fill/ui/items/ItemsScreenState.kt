@@ -10,8 +10,12 @@ sealed interface ItemsScreenState : ViewState {
         val dates: List<Item>,
         val showAddDialog: Boolean = false,
         val deleteConfirmation: Int? = null,
-        val exportJson: String? = null
-    ) : ItemsScreenState
+        val exportJson: String? = null,
+        val selectedItemIds: Set<Int> = emptySet(),
+        val selectionAnchorId: Int? = null
+    ) : ItemsScreenState {
+        val isSelectionMode: Boolean get() = selectionAnchorId != null
+    }
 }
 
 data class Item(

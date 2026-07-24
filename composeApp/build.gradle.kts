@@ -84,6 +84,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(libs.navigation)
+            implementation(libs.ui.backhandler)
             implementation(libs.kotlin.seriazliation.json)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlin.inject.runtime)
