@@ -2,6 +2,7 @@
 package com.muthuraj.cycle.fill.network
 
 import androidx.compose.runtime.mutableStateOf
+import com.muthuraj.cycle.fill.BuildKonfig
 import com.muthuraj.cycle.fill.provideHttpClient
 import com.muthuraj.cycle.fill.util.log
 import io.ktor.client.call.body
@@ -172,9 +173,8 @@ class NetworkManager {
     }
 
     companion object {
-        private const val TAIL_SCALE_URL = ""
-        private const val LOCAL_URL =
-            ""
+        private val TAIL_SCALE_URL = BuildKonfig.TUNNEL_URL
+        private val LOCAL_URL = BuildKonfig.LOCAL_URL
         var useTailScaleUrl = false
 
         private val BASE_SERVER_URL

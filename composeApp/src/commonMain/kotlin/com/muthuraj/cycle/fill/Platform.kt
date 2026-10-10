@@ -1,5 +1,6 @@
 package com.muthuraj.cycle.fill
 
+import com.muthuraj.cycle.fill.network.CloudflareAccess
 import com.muthuraj.cycle.fill.util.log
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
@@ -37,7 +38,9 @@ fun HttpClientConfig<*>.setup() {
                 }
             }
         level = LogLevel.ALL
+        sanitizeHeader { it == CloudflareAccess.HEADER_CLIENT_SECRET }
     }
+    install(CloudflareAccess.KtorPlugin)
     install(ContentNegotiation) {
         json(json, contentType = ContentType.Any)
     }

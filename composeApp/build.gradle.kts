@@ -1,3 +1,5 @@
+import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
+import java.util.Properties
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
@@ -12,7 +14,17 @@ plugins {
     alias(libs.plugins.composeCompiler)
     kotlin("plugin.serialization")
     alias(libs.plugins.ksp)
+    alias(libs.plugins.buildkonfig)
 }
+
+// Machine-specific config (server URLs, Cloudflare Access token, release signing) lives in
+// the git-ignored local.properties.
+val localProperties = Properties().apply {
+    rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
+}
+
+fun localProperty(key: String): String =
+    localProperties.getProperty(key) ?: error("Missing '$key' in local.properties")
 
 kotlin {
     androidTarget {
@@ -121,6 +133,14 @@ android {
         versionCode = 1
         versionName = "1.0"
     }
+    signingConfigs {
+        create("release") {
+            storeFile = rootProject.file(localProperty("release_store_file"))
+            storePassword = localProperty("release_store_password")
+            keyAlias = localProperty("release_key_alias")
+            keyPassword = localProperty("release_key_password")
+        }
+    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -129,6 +149,7 @@ android {
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
@@ -157,6 +178,17 @@ compose.desktop {
             packageName = "com.muthuraj.cycle.fill"
             packageVersion = "1.0.0"
         }
+    }
+}
+
+buildkonfig {
+    packageName = "com.muthuraj.cycle.fill"
+
+    defaultConfigs {
+        buildConfigField(STRING, "LOCAL_URL", localProperty("local_url"))
+        buildConfigField(STRING, "TUNNEL_URL", localProperty("tunnel_url"))
+        buildConfigField(STRING, "CF_ACCESS_CLIENT_ID", localProperty("cf_access_client_id"))
+        buildConfigField(STRING, "CF_ACCESS_CLIENT_SECRET", localProperty("cf_access_client_secret"))
     }
 }
 

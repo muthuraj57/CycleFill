@@ -23,3 +23,9 @@ CycleFill.keystore
 keystore_password.txt
 composeApp/release/
 .fleet
+
+# Local-only files
+iosApp/GoogleService-Info.plist
+.serena/
+.mcp.json
+mcp/
